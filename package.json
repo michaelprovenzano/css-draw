@@ -1,0 +1,23 @@
+{
+  "name": "css-draw",
+  "version": "1.0.0",
+  "description": "A drawing utility with a GUI that uses the power of modern HTML and CSS to create art.",
+  "main": "index.js",
+  "scripts": {
+    "watch:css": "node-sass src/style.scss dist/style.css -rw",
+    "watch:js": "parcel watch ./src/js/index.js --out-dir ./dist --out-file script.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/michaelprovenzano/css-draw.git"
+  },
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/michaelprovenzano/css-draw/issues"
+  },
+  "homepage": "https://github.com/michaelprovenzano/css-draw#readme",
+  "devDependencies": {
+    "node-sass": "^4.14.1"
+  }
+}
