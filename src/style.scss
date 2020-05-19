@@ -1,0 +1,159 @@
+*, *:before, *:after {
+	margin: 0;
+	padding: 0;
+	box-sizing: border-box;
+}
+
+body {
+	width: 100%;
+	height: 100vh;
+	font-family: sans-serif;
+	overflow-y: hidden;
+}
+
+.ui {
+	background: dodgerblue;
+	height: 70px;
+	display: flex;
+	justify-content: space-between;
+	align-items: center;
+	padding: 0 16px;
+	
+	button {
+		padding: 10px;
+		background: white;
+		color: black;
+		border: none;
+		cursor: pointer;
+	}
+	
+	&-left {
+		display: flex;
+		align-items: center;
+		justify-content: flex-start;
+	}
+	
+	&-group {
+		display: flex;
+		justify-content: flex-start;
+		margin-right: 20px;
+		
+		button {
+			background: #c0c0c0;
+			color: #777;
+
+			&.active {
+				background: white;
+				color: black;
+			}
+		}
+	}
+}
+
+#main {
+	display: flex;
+}
+
+#layers-panel {
+	background: #ccc;
+	min-width: 200px;
+	max-width: 400px;
+	max-height: 100vh;
+	overflow-y: auto;
+	
+	h4 {
+		width: 100%;
+		text-align: center;
+		padding: 10px 0;
+		background: #666;
+		color: white;
+	}
+	
+	li {
+		padding: 10px;
+		margin: 5px;
+		background: white;
+		
+		&.active {
+			background: dodgerblue;
+			color: white;
+		}
+	}
+}
+
+#canvas {
+	position: relative;
+	width: 100%;
+	height: 100vh;
+	
+	&.draw {
+		cursor: crosshair;		
+	}
+	
+	&.edit {
+		.transform-helper {
+			cursor: grab;
+		}
+		.anchor {
+			cursor: pointer;
+		}
+	}
+
+}
+
+#canvas div {
+	display: inline-block;
+}
+
+.shape, .transform-helper {
+	display: inline-block;
+	position: absolute;
+}
+
+.shape {
+	background: dodgerblue;
+}
+
+.transform-helper {
+	border: 1px dashed dodgerblue;
+}
+
+.anchor {
+	display: inline-block;
+	position: absolute;
+	background: white;
+	width: 8px;
+	height: 8px;
+	border: 2px solid dodgerblue;
+	
+	&.top-left {
+		top: 0;
+		left: 0;
+		transform: translate(-50%, -50%);
+	}
+	
+	&.bottom-left {
+		top: 100%;
+		left: 0;
+		transform: translate(-50%, -50%);
+	}
+	
+	&.bottom-right {
+		top: 100%;
+		left: 100%;
+		transform: translate(-50%, -50%);
+	}
+	
+	&.top-right {
+		left: 100%;
+		transform: translate(-50%, -50%);
+	}
+	
+	&.corner {
+		border-radius: 50%;
+	}
+}
+
+.ellipse {
+	border-radius: 50%;
+}

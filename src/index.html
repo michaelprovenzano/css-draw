@@ -1,0 +1,36 @@
+<header class="ui">
+	<div class="ui-left">
+		<section class="ui-group">
+			<button class="shape-btn active" data-shape="ellipse">Ellipse</button>
+			<button class="shape-btn" data-shape="rectangle">Rectangle</button>
+		</section>
+
+		<section class="ui-group">
+			<button class="mode active" data-mode="draw">Draw</button>
+			<button class="mode" data-mode="edit">Edit</button>
+		</section>
+		<section class="ui-group">
+			<input type="color" id="shape-color">
+		</section>
+		<section>
+			<button class="btn-action" data-action="layer-front">&upuparrows;</button>
+			<button class="btn-action" data-action="layer-forward">&UpTeeArrow;</button>
+			<button class="btn-action" data-action="layer-backward">&DownTeeArrow;</button>
+			<button class="btn-action" data-action="layer-back">&downdownarrows;</button>
+		</section>
+	</div>
+	<div class="ui-right">
+		<section>
+			<button>Copy CSS</button>
+			<button>Copy HTML</button>
+		</section>
+	</div>
+</header>
+
+<section id="main">
+	<div id="layers-panel">
+		<h4>Layers</h4>
+		<ul id="layers-panel-list"></ul>
+	</div>
+	<div id="canvas" class="draw"></div>
+</section>
