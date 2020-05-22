@@ -10,13 +10,14 @@ class Canvas {
     this.id = 0;
     this.drawStart = {};
     this.drawEnd = {};
-    this.isDrawing = false;
+    this.isMouseDown = false;
     this.shape = 'ellipse';
     this.activeLayer = undefined;
     this.mode = 'draw';
     this.editMode = 'select';
     this.layers = new Layers();
     this.transformHelper = new TransformHelper();
+    this.updates = {};
     this.modifiers = {
       altDown: false,
     };
@@ -93,6 +94,8 @@ class Canvas {
     if (this.activeLayer) this.activeLayer.active = false;
     this.activeLayer = object;
     this.activeLayer.active = true;
+    this.transformHelper.set(this.activeLayer);
+    this.updates.changeActiveLayer = true;
   }
 
   removeActiveLayer() {
@@ -101,8 +104,9 @@ class Canvas {
   }
 
   mousedown(event) {
-    console.log(event.clientX, event.clientY);
-    this.isDrawing = true;
+    this.isMouseDown = true;
+
+    // Initialize these variables
     this.drawStart = copy(this.mousePosition);
     this.drawEnd = copy(this.mousePosition);
     this.transformOrigin = copy(this.mousePosition);
@@ -121,6 +125,7 @@ class Canvas {
     if (this.mode === 'edit') {
       // Get the target layer
       const target = this.layers.getLayerById(event.target.id);
+
       // If target layer exists and it isn't the helper make it active
       if (target && event.target.id !== 'transform-helper-box') this.makeActiveLayer(target);
 
@@ -150,7 +155,6 @@ class Canvas {
           this.mousePosition.y
         );
         this.drawStartShapeRotation = this.activeLayer.rotation;
-        console.log(this.transformOrigin, this.mousePosition);
       }
     }
 
@@ -161,7 +165,7 @@ class Canvas {
   }
 
   mouseup(event) {
-    this.isDrawing = false;
+    this.isMouseDown = false;
     this.resize = false;
     if (this.activeLayer && this.mode === 'draw') {
       if (this.activeLayer.width === 0 || this.activeLayer.height === 0) {
@@ -179,18 +183,18 @@ class Canvas {
       y: event.clientY - canvasBounds.top,
     };
 
-    if (this.isDrawing && this.mode === 'draw') {
+    if (this.isMouseDown && this.mode === 'draw') {
       this.resizeActiveLayer();
     }
 
-    if (this.isDrawing && this.editMode === 'resize') {
+    if (this.isMouseDown && this.editMode === 'resize') {
       this.resizeActiveLayer();
     }
-    if (this.isDrawing && this.editMode === 'rotate') {
+    if (this.isMouseDown && this.editMode === 'rotate') {
       this.rotateActiveLayer();
     }
     if (
-      this.isDrawing === true &&
+      this.isMouseDown === true &&
       this.mode === 'edit' &&
       this.editMode === 'move' &&
       this.activeLayer
@@ -225,11 +229,6 @@ class Canvas {
   }
 
   rotateActiveLayer() {
-    if (this.mousePosition.x >= this.transformOrigin.x) {
-      this.drawWidth = this.mousePosition.x - this.transformOrigin.x;
-    }
-
-    const position = this.relativeMousePosition();
     let angle = rotationAngle(
       this.transformOrigin.x,
       this.transformOrigin.y,

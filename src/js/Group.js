@@ -1,11 +1,10 @@
 import Point from './Point';
 
-class Shape {
+class Group {
   constructor(options) {
     this.id = options.id;
-    this.name = `Layer ${options.id}`;
-    this.type = options.type || 'rectangle';
     this.tag = options.tag || 'div';
+    this.name = `Group ${options.id}`;
     this.top = options.top;
     this.left = options.left;
     this.width = options.width || 0;
@@ -13,14 +12,10 @@ class Shape {
     this.center = new Point(this.width / 2, this.height / 2);
     this.transformOrigin = this.center;
     this.rotation = options.rotation || 0;
-    this.backgroundStyle = options.backgroundStyle || 'color'; // or 'gradient'
-    this.backgroundColor = options.backgroundColor || '#000000';
     this.opacity = options.opacity || 1;
-    this.borderColor = options.borderColor || '#000000';
-    this.borderStyle = options.borderStyle || 'solid';
-    this.borderRadius = options.borderRadius || [0, 0, 0, 0];
     this.active = true;
     this.zIndex = 1;
+    this.layers = new Layers();
 
     // Bindings ///////
     this.add = this.add.bind(this);
@@ -33,11 +28,7 @@ class Shape {
 
   add(parent) {
     this.parent = parent;
-    let borderRadius = 'border-radius:';
-    this.borderRadius.forEach(radius => (borderRadius += `${radius}px `));
-    if (borderRadius === 'border-radius:0px 0px 0px 0px ') borderRadius = null;
-
-    const element = `<${this.tag} class="shape ${this.type}" id="${this.id}" style="top:${this.top}px; left:${this.left}px; width:${this.width}px; height:${this.height}px; background:${this.backgroundColor}; ${borderRadius}; z-index:${this.zIndex}"></${this.tag}>`;
+    const element = `<${this.tag} class="shape ${this.type}" id="${this.id}" style="top:${this.top}px; left:${this.left}px; width:${this.width}px; height:${this.height}px; background:${this.backgroundColor}; z-index:${this.zIndex}"></${this.tag}>`;
     this.parent.insertAdjacentHTML('beforeend', element);
     this.element = this.parent.lastElementChild;
     return this;
@@ -65,12 +56,6 @@ class Shape {
     this.transformOrigin = new Point(x, y);
   }
 
-  setColor(color) {
-    this.backgroundColor = color;
-    this.element.style.backgroundColor = color;
-    this.fillColor = color;
-  }
-
   update() {
     this.element.style.top = `${this.top}px`;
     this.element.style.left = `${this.left}px`;
@@ -92,4 +77,4 @@ class Shape {
   }
 }
 
-export default Shape;
+export default Group;

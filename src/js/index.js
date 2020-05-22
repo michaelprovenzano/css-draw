@@ -4,37 +4,95 @@ import LayersPanel from './LayersPanel';
 class App {
   constructor(options) {
     this.canvas = new Canvas(options.canvas);
-    this.layersPanel = new LayersPanel(options.layersPanel);
+    this.layersPanel = new LayersPanel(options.layersListElement);
     this.menu = options.menu;
+    this.updates = [];
 
+    this.handleUpdates = this.handleUpdates.bind(this);
     this.mousedown = this.mousedown.bind(this);
     this.mouseup = this.mouseup.bind(this);
     this.keydown = this.keydown.bind(this);
+    this.newlayer = this.newlayer.bind(this);
 
+    document.addEventListener('newlayer', this.newlayer);
     document.addEventListener('mousedown', this.mousedown);
     document.addEventListener('mouseup', this.mouseup);
     document.addEventListener('keydown', this.keydown);
   }
 
+  changeactivelayer() {
+    const layerId = `for-${this.canvas.activeLayer.id}`;
+    const layer = document.getElementById(layerId);
+    this.layersPanel.makeAllInactive();
+    this.layersPanel.makeActive(layer);
+  }
+
+  handleUpdates() {
+    this.pullUpdates(this.canvas);
+    this.pullUpdates(this.canvas.layers);
+
+    this.updates.forEach(update => {
+      switch (update) {
+        case 'changeActiveLayer':
+          this.changeactivelayer();
+          break;
+        case 'removeActiveLayer':
+          this.removeactivelayer();
+          break;
+        default:
+          break;
+      }
+      this.updates = [];
+    });
+  }
+
+  pullUpdates(module) {
+    const updates = module.updates;
+    if (!module.updates) return;
+
+    const keys = Object.keys(updates);
+    for (let key of keys) {
+      if (updates[key] === true) {
+        this.updates.push(key);
+        updates[key] = null;
+      }
+    }
+  }
+
   mousedown(event) {
-    this.layersPanel.render(this.canvas.layers.layers);
+    this.handleUpdates();
+    if (event.target.id) {
+      const id = event.target.id;
+      const layerId = id.split('-')[1];
+      const layer = this.canvas.layers.getLayerById(layerId);
+      if (layer) this.canvas.makeActiveLayer(layer);
+    }
   }
 
   mouseup(event) {
-    this.layersPanel.render(this.canvas.layers.layers);
+    this.handleUpdates();
+  }
+
+  newlayer(event) {
+    this.layersPanel.makeAllInactive();
+    this.layersPanel.addLayer(this.canvas.activeLayer, { targetId: this.canvas.activeLayer.id });
+  }
+
+  removeactivelayer() {
+    const layerId = `for-${this.canvas.activeLayer.id}`;
+    const layer = document.getElementById(layerId);
+    this.layersPanel.makeAllInactive();
+    this.layersPanel.remove(layer);
   }
 
   keydown(event) {
-    this.layersPanel.render(this.canvas.layers.layers);
+    this.handleUpdates();
   }
 }
 
 const appOptions = {
   canvas: document.getElementById('canvas'),
-  layersPanel: {
-    element: document.getElementById('layers-panel'),
-    layersListElement: document.getElementById('layers-panel-list'),
-  },
+  layersListElement: document.getElementById('layers-panel-list'),
 };
 const app = new App(appOptions);
 

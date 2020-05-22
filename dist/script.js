@@ -258,7 +258,13 @@ var Shape = /*#__PURE__*/function () {
     this.center = new _Point.default(this.width / 2, this.height / 2);
     this.transformOrigin = this.center;
     this.rotation = options.rotation || 0;
+    this.backgroundStyle = options.backgroundStyle || 'color'; // or 'gradient'
+
     this.backgroundColor = options.backgroundColor || '#000000';
+    this.opacity = options.opacity || 1;
+    this.borderColor = options.borderColor || '#000000';
+    this.borderStyle = options.borderStyle || 'solid';
+    this.borderRadius = options.borderRadius || [0, 0, 0, 0];
     this.active = true;
     this.zIndex = 1; // Bindings ///////
 
@@ -274,7 +280,12 @@ var Shape = /*#__PURE__*/function () {
     key: "add",
     value: function add(parent) {
       this.parent = parent;
-      var element = "<".concat(this.tag, " class=\"shape ").concat(this.type, "\" id=\"").concat(this.id, "\" style=\"top:").concat(this.top, "px; left:").concat(this.left, "px; width:").concat(this.width, "px; height:").concat(this.height, "px; background:").concat(this.backgroundColor, "; z-index:").concat(this.zIndex, "\"></").concat(this.tag, ">");
+      var borderRadius = 'border-radius:';
+      this.borderRadius.forEach(function (radius) {
+        return borderRadius += "".concat(radius, "px ");
+      });
+      if (borderRadius === 'border-radius:0px 0px 0px 0px ') borderRadius = null;
+      var element = "<".concat(this.tag, " class=\"shape ").concat(this.type, "\" id=\"").concat(this.id, "\" style=\"top:").concat(this.top, "px; left:").concat(this.left, "px; width:").concat(this.width, "px; height:").concat(this.height, "px; background:").concat(this.backgroundColor, "; ").concat(borderRadius, "; z-index:").concat(this.zIndex, "\"></").concat(this.tag, ">");
       this.parent.insertAdjacentHTML('beforeend', element);
       this.element = this.parent.lastElementChild;
       return this;
@@ -366,10 +377,11 @@ function _defineProperties(target, props) { for (var i = 0; i < props.length; i+
 function _createClass(Constructor, protoProps, staticProps) { if (protoProps) _defineProperties(Constructor.prototype, protoProps); if (staticProps) _defineProperties(Constructor, staticProps); return Constructor; }
 
 var Layers = /*#__PURE__*/function () {
-  function Layers() {
+  function Layers(layers) {
     _classCallCheck(this, Layers);
 
-    this.layers = []; // Bindings //
+    this.layers = layers || [];
+    this.updates = {}; // Bindings //
 
     this.add = this.add.bind(this);
     this.remove = this.remove.bind(this);
@@ -382,6 +394,10 @@ var Layers = /*#__PURE__*/function () {
     value: function add(layerObject) {
       layerObject.zIndex = this.layers.length;
       this.layers.push(layerObject);
+      var event = new Event('newlayer', {
+        bubbles: true
+      });
+      document.dispatchEvent(event);
     }
   }, {
     key: "duplicate",
@@ -484,6 +500,7 @@ var Layers = /*#__PURE__*/function () {
       object.transformHelper.remove();
       object.element.parentNode.removeChild(object.element);
       this.layers.splice(index, 1);
+      this.updates.removeActiveLayer = true;
     }
   }, {
     key: "updateAll",
@@ -544,13 +561,14 @@ var Canvas = /*#__PURE__*/function () {
     this.id = 0;
     this.drawStart = {};
     this.drawEnd = {};
-    this.isDrawing = false;
+    this.isMouseDown = false;
     this.shape = 'ellipse';
     this.activeLayer = undefined;
     this.mode = 'draw';
     this.editMode = 'select';
     this.layers = new _Layers.default();
     this.transformHelper = new _TransformHelper.default();
+    this.updates = {};
     this.modifiers = {
       altDown: false
     }; // BINDINGS ///////////////////////
@@ -633,6 +651,8 @@ var Canvas = /*#__PURE__*/function () {
       if (this.activeLayer) this.activeLayer.active = false;
       this.activeLayer = object;
       this.activeLayer.active = true;
+      this.transformHelper.set(this.activeLayer);
+      this.updates.changeActiveLayer = true;
     }
   }, {
     key: "removeActiveLayer",
@@ -643,8 +663,8 @@ var Canvas = /*#__PURE__*/function () {
   }, {
     key: "mousedown",
     value: function mousedown(event) {
-      console.log(event.clientX, event.clientY);
-      this.isDrawing = true;
+      this.isMouseDown = true; // Initialize these variables
+
       this.drawStart = copy(this.mousePosition);
       this.drawEnd = copy(this.mousePosition);
       this.transformOrigin = copy(this.mousePosition);
@@ -684,7 +704,6 @@ var Canvas = /*#__PURE__*/function () {
 
           this.drawStartAngle = rotationAngle(this.transformOrigin.x, this.transformOrigin.y, this.mousePosition.x, this.mousePosition.y);
           this.drawStartShapeRotation = this.activeLayer.rotation;
-          console.log(this.transformOrigin, this.mousePosition);
         }
       }
 
@@ -696,7 +715,7 @@ var Canvas = /*#__PURE__*/function () {
   }, {
     key: "mouseup",
     value: function mouseup(event) {
-      this.isDrawing = false;
+      this.isMouseDown = false;
       this.resize = false;
 
       if (this.activeLayer && this.mode === 'draw') {
@@ -716,19 +735,19 @@ var Canvas = /*#__PURE__*/function () {
         y: event.clientY - canvasBounds.top
       };
 
-      if (this.isDrawing && this.mode === 'draw') {
+      if (this.isMouseDown && this.mode === 'draw') {
         this.resizeActiveLayer();
       }
 
-      if (this.isDrawing && this.editMode === 'resize') {
+      if (this.isMouseDown && this.editMode === 'resize') {
         this.resizeActiveLayer();
       }
 
-      if (this.isDrawing && this.editMode === 'rotate') {
+      if (this.isMouseDown && this.editMode === 'rotate') {
         this.rotateActiveLayer();
       }
 
-      if (this.isDrawing === true && this.mode === 'edit' && this.editMode === 'move' && this.activeLayer) {
+      if (this.isMouseDown === true && this.mode === 'edit' && this.editMode === 'move' && this.activeLayer) {
         this.activeLayer.move(this.mousePosition.x, this.mousePosition.y);
       }
     }
@@ -762,11 +781,6 @@ var Canvas = /*#__PURE__*/function () {
   }, {
     key: "rotateActiveLayer",
     value: function rotateActiveLayer() {
-      if (this.mousePosition.x >= this.transformOrigin.x) {
-        this.drawWidth = this.mousePosition.x - this.transformOrigin.x;
-      }
-
-      var position = this.relativeMousePosition();
       var angle = rotationAngle(this.transformOrigin.x, this.transformOrigin.y, this.mousePosition.x, this.mousePosition.y);
       angle = angle + 180 - this.drawStartAngle + this.drawStartShapeRotation;
       this.activeLayer.setRotation(angle);
@@ -840,9 +854,17 @@ Object.defineProperty(exports, "__esModule", {
 });
 exports.default = void 0;
 
-function _createForOfIteratorHelper(o) { if (typeof Symbol === "undefined" || o[Symbol.iterator] == null) { if (Array.isArray(o) || (o = _unsupportedIterableToArray(o))) { var i = 0; var F = function F() {}; return { s: F, n: function n() { if (i >= o.length) return { done: true }; return { done: false, value: o[i++] }; }, e: function e(_e) { throw _e; }, f: F }; } throw new TypeError("Invalid attempt to iterate non-iterable instance.\nIn order to be iterable, non-array objects must have a [Symbol.iterator]() method."); } var it, normalCompletion = true, didErr = false, err; return { s: function s() { it = o[Symbol.iterator](); }, n: function n() { var step = it.next(); normalCompletion = step.done; return step; }, e: function e(_e2) { didErr = true; err = _e2; }, f: function f() { try { if (!normalCompletion && it.return != null) it.return(); } finally { if (didErr) throw err; } } }; }
+function _readOnlyError(name) { throw new Error("\"" + name + "\" is read-only"); }
+
+function _toConsumableArray(arr) { return _arrayWithoutHoles(arr) || _iterableToArray(arr) || _unsupportedIterableToArray(arr) || _nonIterableSpread(); }
+
+function _nonIterableSpread() { throw new TypeError("Invalid attempt to spread non-iterable instance.\nIn order to be iterable, non-array objects must have a [Symbol.iterator]() method."); }
 
 function _unsupportedIterableToArray(o, minLen) { if (!o) return; if (typeof o === "string") return _arrayLikeToArray(o, minLen); var n = Object.prototype.toString.call(o).slice(8, -1); if (n === "Object" && o.constructor) n = o.constructor.name; if (n === "Map" || n === "Set") return Array.from(o); if (n === "Arguments" || /^(?:Ui|I)nt(?:8|16|32)(?:Clamped)?Array$/.test(n)) return _arrayLikeToArray(o, minLen); }
+
+function _iterableToArray(iter) { if (typeof Symbol !== "undefined" && Symbol.iterator in Object(iter)) return Array.from(iter); }
+
+function _arrayWithoutHoles(arr) { if (Array.isArray(arr)) return _arrayLikeToArray(arr); }
 
 function _arrayLikeToArray(arr, len) { if (len == null || len > arr.length) len = arr.length; for (var i = 0, arr2 = new Array(len); i < len; i++) { arr2[i] = arr[i]; } return arr2; }
 
@@ -852,52 +874,252 @@ function _defineProperties(target, props) { for (var i = 0; i < props.length; i+
 
 function _createClass(Constructor, protoProps, staticProps) { if (protoProps) _defineProperties(Constructor.prototype, protoProps); if (staticProps) _defineProperties(Constructor, staticProps); return Constructor; }
 
-var LayersPanel = /*#__PURE__*/function () {
-  function LayersPanel(_ref) {
-    var element = _ref.element,
-        layersListElement = _ref.layersListElement;
+var Sortable = /*#__PURE__*/function () {
+  function Sortable(listEl, options) {
+    _classCallCheck(this, Sortable);
 
-    _classCallCheck(this, LayersPanel);
+    if (!options) options = {};
+    this.element = listEl;
+    this.draggedElement = null;
+    this.target = null;
+    this.hoverPosition = null;
+    this.divider = {
+      element: document.createElement('li', {
+        id: 'divider'
+      }),
+      active: false
+    }; // Initialize
 
-    this.element = element;
-    this.layersListElement = layersListElement;
-    this.clear = this.clear.bind(this);
-    this.render = this.render.bind(this);
+    this.divider.element.classList.add('divider');
+    this.children = flattenChildren(_toConsumableArray(listEl.children));
+    this.betweenSensitivity = options.betweenSensitivity || 0.2;
+    this.children.forEach(function (el) {
+      return el.setAttribute('draggable', 'true');
+    });
+    this.element.addEventListener('click', function (event) {
+      if (event.target.getAttribute('data-list-component') === 'group-name' || event.target.getAttribute('data-list-component') === 'group-expand-btn') {
+        event.target.closest('.list-component-group').classList.toggle('collapsed');
+      }
+    }); // Bindings
+
+    this.dragStart = this.dragStart.bind(this);
+    this.dragOver = this.dragOver.bind(this);
+    this.dragLeave = this.dragLeave.bind(this);
+    this.drop = this.drop.bind(this);
+    this.makeAllInactive = this.makeAllInactive.bind(this);
+    this.nestElement = this.nestElement.bind(this);
+    this.recalculateChildren = this.recalculateChildren.bind(this);
+    this.removeDivider = this.removeDivider.bind(this);
+    this.setHoverPosition = this.setHoverPosition.bind(this); // Event Listeners
+
+    this.element.addEventListener('dragstart', this.dragStart);
+    this.element.addEventListener('drop', this.drop);
+    this.element.addEventListener('dragover', this.dragOver);
+    this.element.addEventListener('dragleave', this.dragLeave);
   }
 
-  _createClass(LayersPanel, [{
-    key: "clear",
-    value: function clear() {
-      this.layersListElement.innerHTML = '';
+  _createClass(Sortable, [{
+    key: "addLayer",
+    value: function addLayer(layer, options) {
+      var className = '';
+      if (layer.active) className = 'active';
+      if (!options) options = {};
+      var html = "<li id=\"for-".concat(options.targetId, "\" class=\"").concat(className, "\" draggable=\"true\">").concat(layer.name, "</li>");
+      this.element.insertAdjacentHTML('beforeend', html);
+      this.recalculateChildren();
     }
   }, {
-    key: "render",
-    value: function render(layers) {
-      this.clear();
+    key: "dragStart",
+    value: function dragStart(event, callback) {
+      var targetIndex = this.children.indexOf(event.target);
+      event.dataTransfer.setData('text', targetIndex);
+      this.draggedElement = event.target;
+      this.draggedElement.classList.add('active');
+      if (callback) callback();
+    }
+  }, {
+    key: "dragOver",
+    value: function dragOver(event, callback) {
+      event.preventDefault();
+      var divider = this.divider.element;
+      this.mousePosition = {
+        x: event.clientX,
+        y: event.clientY
+      };
+      this.draggedElement.style.display = 'none';
 
-      var _iterator = _createForOfIteratorHelper(layers),
-          _step;
+      if (event.target !== divider && event.target !== this.element && event.target.getAttribute('data-list-component') !== 'group' && event.target.getAttribute('data-list-component') !== 'group-body') {
+        // Cache the current target
+        if (event) this.target = event.target; // Update the target bounds
 
-      try {
-        for (_iterator.s(); !(_step = _iterator.n()).done;) {
-          var layer = _step.value;
-          var className = '';
-          if (layer.active) className = 'active';
-          var html = "<li class=\"".concat(className, "\">").concat(layer.name, "</li>");
-          this.layersListElement.insertAdjacentHTML('afterbegin', html);
+        this.targetBounds = event.target.getBoundingClientRect(); // Set the hover position based on new bounds
+
+        this.setHoverPosition();
+      }
+
+      if (event.target !== this.element) {
+        event.target.classList.remove('hover');
+      }
+
+      if (this.hoverPosition === 'bottom' && !this.isGroupComponent(event.target)) {
+        if (event.target === this.element || event.target === divider) return;
+
+        if (!divider) {
+          event.target.insertAdjacentElement('afterend', this.divider.element);
+          divider = (_readOnlyError("divider"), event.target.nextSibling);
+        } else {
+          event.target.parentNode.insertBefore(divider, event.target.nextSibling);
         }
-      } catch (err) {
-        _iterator.e(err);
-      } finally {
-        _iterator.f();
+      }
+
+      if (this.hoverPosition === 'top' && !this.isGroupComponent(event.target)) {
+        if (event.target === this.element || event.target === divider) return;
+
+        if (!divider) {
+          event.target.insertAdjacentElement('beforebegin', this.divider.element);
+          divider = (_readOnlyError("divider"), event.target.nextSibling);
+        } else {
+          event.target.parentNode.insertBefore(divider, event.target);
+        }
+      }
+
+      if (this.hoverPosition === 'top' && this.isGroupComponent(event.target, 'group-name')) {
+        if (event.target === this.element || event.target === divider) return;
+
+        if (!divider) {
+          event.target.parentNode.insertAdjacentElement('beforebegin', this.divider.element);
+          divider = (_readOnlyError("divider"), event.target.parentNode.previousSibling);
+        } else {
+          event.target.parentNode.insertBefore(divider, event.target);
+        }
+      }
+
+      if (this.hoverPosition === 'center' && !this.isGroupComponent(event.target, 'group') && !this.isGroupComponent(event.target, 'group-body')) {
+        if (event.target !== this.element) event.target.classList.add('hover');
+        this.removeDivider();
+      }
+
+      if (callback) callback();
+    }
+  }, {
+    key: "dragLeave",
+    value: function dragLeave(event, callback) {
+      event.target.classList.remove('hover');
+      if (callback) callback();
+    }
+  }, {
+    key: "drop",
+    value: function drop(event, callback) {
+      var targetIndex = event.dataTransfer.getData('text');
+      var thisEl = this.children[targetIndex]; // Remove all helper styles/elements
+
+      this.removeDivider();
+      event.target.classList.remove('hover');
+      this.draggedElement.classList.remove('active');
+      this.draggedElement.style.removeProperty('display'); // Place element
+
+      if (this.hoverPosition === 'top' && !this.isGroupComponent(this.target)) this.target.insertAdjacentElement('beforebegin', thisEl);
+      if (this.hoverPosition === 'bottom' && !this.isGroupComponent(this.target)) this.target.insertAdjacentElement('afterend', thisEl);
+      if (this.hoverPosition === 'center') this.nestElement(this.target, thisEl); // Place before group if dropped on top of group name
+
+      if (this.hoverPosition === 'top' && this.isGroupComponent(this.target, 'group-name')) this.target.parentNode.insertAdjacentElement('beforebegin', thisEl);
+      event.dataTransfer.clearData();
+      this.recalculateChildren(); // Optional callback
+
+      if (callback) callback();
+    }
+  }, {
+    key: "isGroupComponent",
+    value: function isGroupComponent(element, type) {
+      var thisType = element.getAttribute('data-list-component');
+      if (type) return thisType === type;
+
+      if (thisType === 'group' || thisType === 'group-name' || thisType === 'group-body') {
+        return true;
+      }
+    }
+  }, {
+    key: "nestElement",
+    value: function nestElement(target, thisEl) {
+      if (target.getAttribute('data-list-component') === 'group-name') {
+        target.nextSibling.insertAdjacentElement('beforeend', thisEl);
+      } else if (target.getAttribute('data-list-component') === 'group') {
+        target.lastChild.insertAdjacentElement('beforeend', thisEl);
+      } else if (target.getAttribute('data-list-component') === 'group-body') {
+        target.insertAdjacentElement('beforeend', thisEl);
+      } else {
+        var li = document.createElement('li');
+        li.setAttribute('draggable', 'true');
+        li.setAttribute('data-list-component', 'group');
+        li.classList.add('list-component-group');
+        li.innerHTML = "\n<div class=\"group list-component-group-name\" data-list-component=\"group-name\">\n\t<span class=\"expand-icon expanded\" data-list-component=\"group-expand-btn\">&rsaquo;</span>\n\tgroup\n</div>";
+        var ul = document.createElement('ul');
+        ul.setAttribute('data-list-component', 'group-body');
+        ul.classList.add('list-component-group-body');
+        li.insertAdjacentElement('beforeend', ul);
+        target.insertAdjacentElement('beforebegin', li);
+        ul.insertAdjacentElement('afterbegin', target);
+        ul.insertAdjacentElement('afterbegin', thisEl);
+      }
+    }
+  }, {
+    key: "recalculateChildren",
+    value: function recalculateChildren() {
+      // Must re-index children to reset correct position
+      this.children = flattenChildren(_toConsumableArray(this.element.children));
+    }
+  }, {
+    key: "remove",
+    value: function remove(layer) {
+      layer.parentNode.removeChild(layer);
+    }
+  }, {
+    key: "removeDivider",
+    value: function removeDivider(event) {
+      var divider = this.divider.element;
+      if (divider.parentNode) divider.parentNode.removeChild(divider);
+    }
+  }, {
+    key: "makeActive",
+    value: function makeActive(layer) {
+      layer.classList.add('active');
+    }
+  }, {
+    key: "makeAllInactive",
+    value: function makeAllInactive() {
+      var children = flattenChildren(this.element.children);
+      children.forEach(function (child) {
+        return child.classList.remove('active');
+      });
+    }
+  }, {
+    key: "setHoverPosition",
+    value: function setHoverPosition(event) {
+      if (this.mousePosition.y > this.targetBounds.top + this.targetBounds.height - this.targetBounds.height * this.betweenSensitivity) {
+        this.hoverPosition = 'bottom';
+      } else if (this.mousePosition.y < this.targetBounds.top + this.targetBounds.height * this.betweenSensitivity) {
+        this.hoverPosition = 'top';
+      } else {
+        this.hoverPosition = 'center';
       }
     }
   }]);
 
-  return LayersPanel;
+  return Sortable;
 }();
 
-var _default = LayersPanel;
+function flattenChildren(arr) {
+  var newArr = [];
+
+  for (var i = 0; i < arr.length; i++) {
+    newArr.push(arr[i]);
+    if (arr[i].children.length > 0) newArr.push.apply(newArr, _toConsumableArray(flattenChildren(_toConsumableArray(arr[i].children))));
+  }
+
+  return newArr;
+}
+
+var _default = Sortable;
 exports.default = _default;
 },{}],"index.js":[function(require,module,exports) {
 "use strict";
@@ -931,30 +1153,107 @@ var App = /*#__PURE__*/function () {
     _classCallCheck(this, App);
 
     this.canvas = new _Canvas.default(options.canvas);
-    this.layersPanel = new _LayersPanel.default(options.layersPanel);
+    this.layersPanel = new _LayersPanel.default(options.layersListElement);
     this.menu = options.menu;
+    this.updates = [];
+    this.handleUpdates = this.handleUpdates.bind(this);
     this.mousedown = this.mousedown.bind(this);
     this.mouseup = this.mouseup.bind(this);
     this.keydown = this.keydown.bind(this);
+    this.newlayer = this.newlayer.bind(this);
+    document.addEventListener('newlayer', this.newlayer);
     document.addEventListener('mousedown', this.mousedown);
     document.addEventListener('mouseup', this.mouseup);
     document.addEventListener('keydown', this.keydown);
   }
 
   _createClass(App, [{
+    key: "changeactivelayer",
+    value: function changeactivelayer() {
+      var layerId = "for-".concat(this.canvas.activeLayer.id);
+      var layer = document.getElementById(layerId);
+      this.layersPanel.makeAllInactive();
+      this.layersPanel.makeActive(layer);
+    }
+  }, {
+    key: "handleUpdates",
+    value: function handleUpdates() {
+      var _this = this;
+
+      this.pullUpdates(this.canvas);
+      this.pullUpdates(this.canvas.layers);
+      this.updates.forEach(function (update) {
+        switch (update) {
+          case 'changeActiveLayer':
+            _this.changeactivelayer();
+
+            break;
+
+          case 'removeActiveLayer':
+            _this.removeactivelayer();
+
+            break;
+
+          default:
+            break;
+        }
+
+        _this.updates = [];
+      });
+    }
+  }, {
+    key: "pullUpdates",
+    value: function pullUpdates(module) {
+      var updates = module.updates;
+      if (!module.updates) return;
+      var keys = Object.keys(updates);
+
+      for (var _i = 0, _keys = keys; _i < _keys.length; _i++) {
+        var key = _keys[_i];
+
+        if (updates[key] === true) {
+          this.updates.push(key);
+          updates[key] = null;
+        }
+      }
+    }
+  }, {
     key: "mousedown",
     value: function mousedown(event) {
-      this.layersPanel.render(this.canvas.layers.layers);
+      this.handleUpdates();
+
+      if (event.target.id) {
+        var id = event.target.id;
+        var layerId = id.split('-')[1];
+        var layer = this.canvas.layers.getLayerById(layerId);
+        if (layer) this.canvas.makeActiveLayer(layer);
+      }
     }
   }, {
     key: "mouseup",
     value: function mouseup(event) {
-      this.layersPanel.render(this.canvas.layers.layers);
+      this.handleUpdates();
+    }
+  }, {
+    key: "newlayer",
+    value: function newlayer(event) {
+      this.layersPanel.makeAllInactive();
+      this.layersPanel.addLayer(this.canvas.activeLayer, {
+        targetId: this.canvas.activeLayer.id
+      });
+    }
+  }, {
+    key: "removeactivelayer",
+    value: function removeactivelayer() {
+      var layerId = "for-".concat(this.canvas.activeLayer.id);
+      var layer = document.getElementById(layerId);
+      this.layersPanel.makeAllInactive();
+      this.layersPanel.remove(layer);
     }
   }, {
     key: "keydown",
     value: function keydown(event) {
-      this.layersPanel.render(this.canvas.layers.layers);
+      this.handleUpdates();
     }
   }]);
 
@@ -963,10 +1262,7 @@ var App = /*#__PURE__*/function () {
 
 var appOptions = {
   canvas: document.getElementById('canvas'),
-  layersPanel: {
-    element: document.getElementById('layers-panel'),
-    layersListElement: document.getElementById('layers-panel-list')
-  }
+  layersListElement: document.getElementById('layers-panel-list')
 };
 var app = new App(appOptions);
 
@@ -1063,7 +1359,7 @@ var parent = module.bundle.parent;
 if ((!parent || !parent.isParcelRequire) && typeof WebSocket !== 'undefined') {
   var hostname = "" || location.hostname;
   var protocol = location.protocol === 'https:' ? 'wss' : 'ws';
-  var ws = new WebSocket(protocol + '://' + hostname + ':' + "59103" + '/');
+  var ws = new WebSocket(protocol + '://' + hostname + ':' + "49503" + '/');
 
   ws.onmessage = function (event) {
     checkedAssets = {};

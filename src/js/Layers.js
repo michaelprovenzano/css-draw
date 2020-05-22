@@ -1,8 +1,9 @@
 import Shape from './Shape';
 
 class Layers {
-  constructor() {
-    this.layers = [];
+  constructor(layers) {
+    this.layers = layers || [];
+    this.updates = {};
 
     // Bindings //
     this.add = this.add.bind(this);
@@ -14,6 +15,9 @@ class Layers {
   add(layerObject) {
     layerObject.zIndex = this.layers.length;
     this.layers.push(layerObject);
+
+    var event = new Event('newlayer', { bubbles: true });
+    document.dispatchEvent(event);
   }
 
   duplicate(layerObject, newId) {
@@ -109,6 +113,7 @@ class Layers {
 
     object.element.parentNode.removeChild(object.element);
     this.layers.splice(index, 1);
+    this.updates.removeActiveLayer = true;
   }
 
   updateAll() {
