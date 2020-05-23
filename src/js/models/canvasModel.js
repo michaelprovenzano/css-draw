@@ -1,7 +1,7 @@
 import TransformHelper from './TransformHelper';
-import Shape from './controllers/shapeController';
-import Layers from './controllers/layersController';
-import Point from './utils/Point';
+import Shape from './Shape';
+import Layers from './Layers';
+import Utils from './Utils';
 
 class Canvas {
   constructor(canvas) {
@@ -44,7 +44,6 @@ class Canvas {
     const shape = new Shape(options);
     const parent = this.element;
 
-    this.layers.makeAllInactive();
     this.makeActiveLayer(shape.add(parent));
     this.layers.add(shape);
 
@@ -61,9 +60,6 @@ class Canvas {
       // delete
       case 46 || 8:
         this.layers.remove(this.activeLayer);
-        this.activeLayer.remove();
-        this.activeLayer = undefined;
-        this.transformHelper.remove();
         break;
       // up
       case 38:
@@ -74,7 +70,6 @@ class Canvas {
         break;
       case 68:
         const newLayer = this.layers.duplicate(this.activeLayer, this.id);
-        this.drawShape(this.layers.model);
         this.makeActiveLayer(newLayer);
         this.id++;
         break;
@@ -96,17 +91,11 @@ class Canvas {
   }
 
   makeActiveLayer(object) {
-    // Make the shape on canvas active
-    if (this.activeLayer) {
-      this.activeLayer.active = false;
-      this.layers.makeAllInactive();
-    }
+    if (this.activeLayer) this.activeLayer.active = false;
     this.activeLayer = object;
-    this.activeLayer.makeActive();
-    this.transformHelper.set(object);
-
-    // Make the layer in layers panel active
-    this.layers.makeActive(this.activeLayer);
+    this.activeLayer.active = true;
+    this.transformHelper.set(this.activeLayer);
+    this.updates.changeActiveLayer = true;
   }
 
   removeActiveLayer() {
@@ -130,10 +119,8 @@ class Canvas {
       type: this.shape,
       id: this.id,
       backgroundColor: this.shapeColor,
-      transformOrigin: copy(this.mousePosition),
     };
 
-    // HANDLE CANVAS INTERACTIONS
     if (this.mode === 'draw') this.drawShape(shapeOptions);
     if (this.mode === 'edit') {
       // Get the target layer
@@ -173,7 +160,7 @@ class Canvas {
 
     if (this.mode === 'edit' && this.activeLayer && event.target.id === 'transform-helper-box') {
       this.editMode = 'move';
-      this.activeLayer.setClickPosition(event);
+      this.activeLayer.updateOnClick(event);
     }
   }
 
@@ -197,10 +184,11 @@ class Canvas {
     };
 
     if (this.isMouseDown && this.mode === 'draw') {
-      this.resizeLayer(this.activeLayer);
+      this.resizeActiveLayer();
     }
+
     if (this.isMouseDown && this.editMode === 'resize') {
-      this.resizeLayer(this.activeLayer);
+      this.resizeActiveLayer();
     }
     if (this.isMouseDown && this.editMode === 'rotate') {
       this.rotateActiveLayer();
@@ -211,7 +199,7 @@ class Canvas {
       this.editMode === 'move' &&
       this.activeLayer
     ) {
-      this.activeLayer.setPosition(this.mousePosition.x, this.mousePosition.y);
+      this.activeLayer.move(this.mousePosition.x, this.mousePosition.y);
     }
   }
 
@@ -222,28 +210,22 @@ class Canvas {
     };
   }
 
-  resizeLayer(layer) {
-    const mousePosition = this.mousePosition;
-    const activeLayer = layer.getProperties();
-    const transformOrigin = this.transformOrigin;
-
-    if (mousePosition.x >= transformOrigin.x) {
-      this.drawWidth = mousePosition.x - transformOrigin.x;
+  resizeActiveLayer() {
+    if (this.mousePosition.x >= this.transformOrigin.x) {
+      this.drawWidth = this.mousePosition.x - this.transformOrigin.x;
     } else {
-      this.drawWidth = transformOrigin.x - mousePosition.x;
-      activeLayer.left = transformOrigin.x - this.drawWidth;
+      this.drawWidth = this.transformOrigin.x - this.mousePosition.x;
+      this.activeLayer.left = this.transformOrigin.x - this.drawWidth;
     }
 
-    if (mousePosition.y >= transformOrigin.y) {
-      this.drawHeight = mousePosition.y - transformOrigin.y;
+    if (this.mousePosition.y >= this.transformOrigin.y) {
+      this.drawHeight = this.mousePosition.y - this.transformOrigin.y;
     } else {
-      this.drawHeight = transformOrigin.y - mousePosition.y;
-      activeLayer.top = transformOrigin.y - this.drawHeight;
+      this.drawHeight = this.transformOrigin.y - this.mousePosition.y;
+      this.activeLayer.top = this.transformOrigin.y - this.drawHeight;
     }
 
-    layer.setSize(this.drawWidth, this.drawHeight);
-    layer.setTransformOrigin(transformOrigin.x, transformOrigin.y);
-    this.transformHelper.update();
+    this.activeLayer.setSize(this.drawWidth, this.drawHeight);
   }
 
   rotateActiveLayer() {
@@ -259,43 +241,37 @@ class Canvas {
   }
 
   setTransformOrigin(event) {
-    const activeLayer = this.activeLayer.getProperties();
-    const classes = event.target.classList;
-    let x, y;
-
-    // MODIFIERS
     if (this.modifiers.altDown) {
-      x = activeLayer.left + activeLayer.width / 2;
-      y = activeLayer.top + activeLayer.height / 2;
-
-      activeLayer.setTransformOrigin(x, y);
-      this.transformOrigin = new Point(x, y);
-      this.transformHelper.update();
+      this.transformOrigin = {
+        x: this.activeLayer.left + this.activeLayer.width / 2,
+        y: this.activeLayer.top + this.activeLayer.height / 2,
+      };
       return;
     }
-
-    // Normal case
-    if (classes.contains('bottom-right')) {
-      x = activeLayer.left;
-      y = activeLayer.top;
+    if (event.target.classList.contains('bottom-right')) {
+      this.transformOrigin = {
+        x: this.activeLayer.left,
+        y: this.activeLayer.top,
+      };
     }
-    if (classes.contains('bottom-left')) {
-      x = activeLayer.left + activeLayer.width;
-      y = activeLayer.top;
+    if (event.target.classList.contains('bottom-left')) {
+      this.transformOrigin = {
+        x: this.activeLayer.left + this.activeLayer.width,
+        y: this.activeLayer.top,
+      };
     }
-    if (classes.contains('top-left')) {
-      x = activeLayer.left + activeLayer.width;
-      y = activeLayer.top + activeLayer.height;
+    if (event.target.classList.contains('top-left')) {
+      this.transformOrigin = {
+        x: this.activeLayer.left + this.activeLayer.width,
+        y: this.activeLayer.top + this.activeLayer.height,
+      };
     }
-    if (classes.contains('top-right')) {
-      x = activeLayer.left;
-      y = activeLayer.top + activeLayer.height;
+    if (event.target.classList.contains('top-right')) {
+      this.transformOrigin = {
+        x: this.activeLayer.left,
+        y: this.activeLayer.top + this.activeLayer.height,
+      };
     }
-
-    // Set transformation origin
-    activeLayer.setTransformOrigin(x, y);
-    this.transformOrigin = new Point(x, y);
-    this.transformHelper.update();
   }
 }
 

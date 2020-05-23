@@ -1,4 +1,4 @@
-import Point from './Point';
+import Point from './utils/Point';
 
 class TransformHelper {
   constructor(options) {
@@ -14,15 +14,23 @@ class TransformHelper {
   }
 
   add(shape) {
+    // Transform helper pointers
     this.target = shape;
     shape.transformHelper = this;
+
+    // Set shape to model to get data
+    shape = shape.model;
+
+    // Update the data
     this.top = shape.top - this.borderWidth;
     this.left = shape.left - this.borderWidth;
     this.height = shape.height + this.borderWidth * 2;
     this.width = shape.width + this.borderWidth * 2;
     this.transformOrigin = shape.center;
     this.rotation = this.target.rotation;
+    this.transformOrigin = shape.transformOrigin;
 
+    // Generate the html
     const element = `
     <div class="transform-helper" id="transform-helper-box" style="top:${this.top}px; left:${this.left}px; width:${this.width}px; height:${this.height}px; transform: rotate(${this.rotation}deg); z-index:10000">
       <div class="transform-origin" style="top:${this.transformOrigin.y}px; left:${this.transformOrigin.x}px; transform: translate(-50%, -50%)"></div>
@@ -30,10 +38,15 @@ class TransformHelper {
 			<div class="anchor top-right corner"></div>
 			<div class="anchor bottom-left corner"></div>
 			<div class="anchor bottom-right corner"></div>
-		</div>`;
-    this.target.element.insertAdjacentHTML('beforebegin', element);
-    this.box = this.target.element.previousSibling;
+    </div>`;
+
+    // Insert the htmls
+    this.target.view.element.insertAdjacentHTML('beforebegin', element);
+
+    // Set the references on the TranformHelper object
+    this.box = this.target.view.element.previousSibling;
     this.origin = this.box.querySelector('.transform-origin');
+
     return this;
   }
 
@@ -46,13 +59,13 @@ class TransformHelper {
   }
 
   update() {
-    this.width = this.target.width + this.borderWidth * 2;
-    this.height = this.target.height + this.borderWidth * 2;
-    this.top = this.target.top - this.borderWidth;
-    this.left = this.target.left - this.borderWidth;
-    this.center = this.target.center;
-    this.transformOrigin = this.target.transformOrigin;
-    this.rotation = this.target.rotation;
+    this.width = this.target.model.width + this.borderWidth * 2;
+    this.height = this.target.model.height + this.borderWidth * 2;
+    this.top = this.target.model.top - this.borderWidth;
+    this.left = this.target.model.left - this.borderWidth;
+    this.center = this.target.model.center;
+    this.transformOrigin = this.target.model.transformOrigin;
+    this.rotation = this.target.model.rotation;
 
     this.box.style.top = `${this.top}px`;
     this.box.style.left = `${this.left}px`;

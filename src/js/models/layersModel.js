@@ -1,4 +1,4 @@
-import Shape from './Shape';
+import Shape from '../controllers/shapeController';
 
 class Layers {
   constructor(layers) {
@@ -7,17 +7,15 @@ class Layers {
 
     // Bindings //
     this.add = this.add.bind(this);
+    this.makeAllInactive = this.makeAllInactive.bind(this);
     this.remove = this.remove.bind(this);
     this.getLayerById = this.getLayerById.bind(this);
     this.getLayerIndex = this.getLayerIndex.bind(this);
   }
 
   add(layerObject) {
-    layerObject.zIndex = this.layers.length;
+    layerObject.model.zIndex = this.layers.length;
     this.layers.push(layerObject);
-
-    var event = new Event('newlayer', { bubbles: true });
-    document.dispatchEvent(event);
   }
 
   duplicate(layerObject, newId) {
@@ -35,7 +33,7 @@ class Layers {
   }
 
   getLayerById(id) {
-    return this.layers.find(layer => layer.id === parseInt(id));
+    return this.layers.find(layer => layer.model.id === parseInt(id));
   }
 
   getLayerIndex(object) {
@@ -49,6 +47,8 @@ class Layers {
     }
     return index;
   }
+
+  makeAllInactive() {}
 
   moveLayerForward(layer) {
     const index = this.getLayerIndex(layer);
@@ -108,12 +108,7 @@ class Layers {
 
   remove(object) {
     let index = this.getLayerIndex(object);
-
-    object.transformHelper.remove();
-
-    object.element.parentNode.removeChild(object.element);
     this.layers.splice(index, 1);
-    this.updates.removeActiveLayer = true;
   }
 
   updateAll() {

@@ -117,7 +117,7 @@ parcelRequire = (function (modules, cache, entry, globalName) {
   }
 
   return newRequire;
-})({"Point.js":[function(require,module,exports) {
+})({"utils/Point.js":[function(require,module,exports) {
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -143,7 +143,7 @@ Object.defineProperty(exports, "__esModule", {
 });
 exports.default = void 0;
 
-var _Point = _interopRequireDefault(require("./Point"));
+var _Point = _interopRequireDefault(require("./utils/Point"));
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
@@ -170,17 +170,25 @@ var TransformHelper = /*#__PURE__*/function () {
   _createClass(TransformHelper, [{
     key: "add",
     value: function add(shape) {
+      // Transform helper pointers
       this.target = shape;
-      shape.transformHelper = this;
+      shape.transformHelper = this; // Set shape to model to get data
+
+      shape = shape.model; // Update the data
+
       this.top = shape.top - this.borderWidth;
       this.left = shape.left - this.borderWidth;
       this.height = shape.height + this.borderWidth * 2;
       this.width = shape.width + this.borderWidth * 2;
       this.transformOrigin = shape.center;
       this.rotation = this.target.rotation;
-      var element = "\n    <div class=\"transform-helper\" id=\"transform-helper-box\" style=\"top:".concat(this.top, "px; left:").concat(this.left, "px; width:").concat(this.width, "px; height:").concat(this.height, "px; transform: rotate(").concat(this.rotation, "deg); z-index:10000\">\n      <div class=\"transform-origin\" style=\"top:").concat(this.transformOrigin.y, "px; left:").concat(this.transformOrigin.x, "px; transform: translate(-50%, -50%)\"></div>\n\t\t\t<div class=\"anchor top-left corner\"></div>\n\t\t\t<div class=\"anchor top-right corner\"></div>\n\t\t\t<div class=\"anchor bottom-left corner\"></div>\n\t\t\t<div class=\"anchor bottom-right corner\"></div>\n\t\t</div>");
-      this.target.element.insertAdjacentHTML('beforebegin', element);
-      this.box = this.target.element.previousSibling;
+      this.transformOrigin = shape.transformOrigin; // Generate the html
+
+      var element = "\n    <div class=\"transform-helper\" id=\"transform-helper-box\" style=\"top:".concat(this.top, "px; left:").concat(this.left, "px; width:").concat(this.width, "px; height:").concat(this.height, "px; transform: rotate(").concat(this.rotation, "deg); z-index:10000\">\n      <div class=\"transform-origin\" style=\"top:").concat(this.transformOrigin.y, "px; left:").concat(this.transformOrigin.x, "px; transform: translate(-50%, -50%)\"></div>\n\t\t\t<div class=\"anchor top-left corner\"></div>\n\t\t\t<div class=\"anchor top-right corner\"></div>\n\t\t\t<div class=\"anchor bottom-left corner\"></div>\n\t\t\t<div class=\"anchor bottom-right corner\"></div>\n    </div>"); // Insert the htmls
+
+      this.target.view.element.insertAdjacentHTML('beforebegin', element); // Set the references on the TranformHelper object
+
+      this.box = this.target.view.element.previousSibling;
       this.origin = this.box.querySelector('.transform-origin');
       return this;
     }
@@ -197,13 +205,13 @@ var TransformHelper = /*#__PURE__*/function () {
   }, {
     key: "update",
     value: function update() {
-      this.width = this.target.width + this.borderWidth * 2;
-      this.height = this.target.height + this.borderWidth * 2;
-      this.top = this.target.top - this.borderWidth;
-      this.left = this.target.left - this.borderWidth;
-      this.center = this.target.center;
-      this.transformOrigin = this.target.transformOrigin;
-      this.rotation = this.target.rotation;
+      this.width = this.target.model.width + this.borderWidth * 2;
+      this.height = this.target.model.height + this.borderWidth * 2;
+      this.top = this.target.model.top - this.borderWidth;
+      this.left = this.target.model.left - this.borderWidth;
+      this.center = this.target.model.center;
+      this.transformOrigin = this.target.model.transformOrigin;
+      this.rotation = this.target.model.rotation;
       this.box.style.top = "".concat(this.top, "px");
       this.box.style.left = "".concat(this.left, "px");
       this.box.style.width = "".concat(this.width, "px");
@@ -225,7 +233,7 @@ var TransformHelper = /*#__PURE__*/function () {
 
 var _default = TransformHelper;
 exports.default = _default;
-},{"./Point":"Point.js"}],"Shape.js":[function(require,module,exports) {
+},{"./utils/Point":"utils/Point.js"}],"models/shapeModel.js":[function(require,module,exports) {
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -233,7 +241,7 @@ Object.defineProperty(exports, "__esModule", {
 });
 exports.default = void 0;
 
-var _Point = _interopRequireDefault(require("./Point"));
+var _Point = _interopRequireDefault(require("../utils/Point"));
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
@@ -243,9 +251,9 @@ function _defineProperties(target, props) { for (var i = 0; i < props.length; i+
 
 function _createClass(Constructor, protoProps, staticProps) { if (protoProps) _defineProperties(Constructor.prototype, protoProps); if (staticProps) _defineProperties(Constructor, staticProps); return Constructor; }
 
-var Shape = /*#__PURE__*/function () {
-  function Shape(options) {
-    _classCallCheck(this, Shape);
+var ShapeModel = /*#__PURE__*/function () {
+  function ShapeModel(options) {
+    _classCallCheck(this, ShapeModel);
 
     this.id = options.id;
     this.name = "Layer ".concat(options.id);
@@ -268,52 +276,49 @@ var Shape = /*#__PURE__*/function () {
     this.active = true;
     this.zIndex = 1; // Bindings ///////
 
-    this.add = this.add.bind(this);
+    this.makeActive = this.makeActive.bind(this);
+    this.setBoundsFromElement = this.setBoundsFromElement.bind(this);
     this.setSize = this.setSize.bind(this);
     this.setRotation = this.setRotation.bind(this);
-    this.move = this.move.bind(this);
+    this.setPosition = this.setPosition.bind(this);
     this.update = this.update.bind(this);
-    this.updateOnClick = this.updateOnClick.bind(this);
+    this.setClickPosition = this.setClickPosition.bind(this);
   }
 
-  _createClass(Shape, [{
-    key: "add",
-    value: function add(parent) {
-      this.parent = parent;
-      var borderRadius = 'border-radius:';
-      this.borderRadius.forEach(function (radius) {
-        return borderRadius += "".concat(radius, "px ");
-      });
-      if (borderRadius === 'border-radius:0px 0px 0px 0px ') borderRadius = null;
-      var element = "<".concat(this.tag, " class=\"shape ").concat(this.type, "\" id=\"").concat(this.id, "\" style=\"top:").concat(this.top, "px; left:").concat(this.left, "px; width:").concat(this.width, "px; height:").concat(this.height, "px; background:").concat(this.backgroundColor, "; ").concat(borderRadius, "; z-index:").concat(this.zIndex, "\"></").concat(this.tag, ">");
-      this.parent.insertAdjacentHTML('beforeend', element);
-      this.element = this.parent.lastElementChild;
-      return this;
+  _createClass(ShapeModel, [{
+    key: "makeActive",
+    value: function makeActive(layer) {
+      this.active = true;
     }
   }, {
-    key: "move",
-    value: function move(left, top) {
+    key: "setBoundsFromElement",
+    value: function setBoundsFromElement(element) {
+      var bounds = element.getBoundingClientRect();
+      this.bounds = bounds;
+    }
+  }, {
+    key: "setPosition",
+    value: function setPosition(left, top) {
       if (!this.clickEvent) return;
       this.top = top - this.clickEvent.y;
       this.left = left - this.clickEvent.x;
-      this.update();
     }
   }, {
     key: "setSize",
     value: function setSize(width, height, origin) {
       this.width = width;
       this.height = height;
-      this.update();
     }
   }, {
     key: "setRotation",
     value: function setRotation(deg) {
       this.rotation = deg;
-      this.update();
     }
   }, {
     key: "setTransformOrigin",
     value: function setTransformOrigin(x, y) {
+      x = x - this.left;
+      y = y - this.top;
       this.transformOrigin = new _Point.default(x, y);
     }
   }, {
@@ -326,24 +331,199 @@ var Shape = /*#__PURE__*/function () {
   }, {
     key: "update",
     value: function update() {
-      this.element.style.top = "".concat(this.top, "px");
-      this.element.style.left = "".concat(this.left, "px");
-      this.element.style.width = "".concat(this.width, "px");
-      this.element.style.height = "".concat(this.height, "px");
-      this.center = new _Point.default(this.width / 2, this.height / 2);
-      this.transformOrigin = this.center;
-      this.element.style.zIndex = "".concat(this.zIndex);
-      this.element.style.transform = "rotate(".concat(this.rotation, "deg)");
-      this.bounds = this.element.getBoundingClientRect();
-      if (this.transformHelper) this.transformHelper.update();
+      // this.center = new Point(this.width / 2, this.height / 2);
+      // this.transformOrigin = this.center;
+      if (this.element) this.bounds = this.element.getBoundingClientRect();
     }
   }, {
-    key: "updateOnClick",
-    value: function updateOnClick(event) {
+    key: "setClickPosition",
+    value: function setClickPosition(event) {
       this.clickEvent = {
         x: event.clientX - this.bounds.x,
         y: event.clientY - this.bounds.y
       };
+    }
+  }]);
+
+  return ShapeModel;
+}();
+
+var _default = ShapeModel;
+exports.default = _default;
+},{"../utils/Point":"utils/Point.js"}],"views/shapeView.js":[function(require,module,exports) {
+"use strict";
+
+Object.defineProperty(exports, "__esModule", {
+  value: true
+});
+exports.default = void 0;
+
+var _Point = _interopRequireDefault(require("../utils/Point"));
+
+function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+
+function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+
+function _defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } }
+
+function _createClass(Constructor, protoProps, staticProps) { if (protoProps) _defineProperties(Constructor.prototype, protoProps); if (staticProps) _defineProperties(Constructor, staticProps); return Constructor; }
+
+var ShapeView = /*#__PURE__*/function () {
+  function ShapeView(options) {
+    _classCallCheck(this, ShapeView);
+
+    // Bindings ///////
+    this.add = this.add.bind(this);
+    this.update = this.update.bind(this);
+  }
+
+  _createClass(ShapeView, [{
+    key: "add",
+    value: function add(parent, shapeObject) {
+      this.parent = parent;
+      var borderRadius = 'border-radius:';
+      shapeObject.borderRadius.forEach(function (radius) {
+        return borderRadius += "".concat(radius, "px ");
+      });
+      if (borderRadius === 'border-radius:0px 0px 0px 0px ') borderRadius = null;
+      var element = "<".concat(shapeObject.tag, " class=\"shape ").concat(shapeObject.type, "\" id=\"").concat(shapeObject.id, "\" style=\"top:").concat(shapeObject.top, "px; left:").concat(shapeObject.left, "px; width:").concat(shapeObject.width, "px; height:").concat(shapeObject.height, "px; background:").concat(shapeObject.backgroundColor, "; ").concat(borderRadius, "; z-index:").concat(shapeObject.zIndex, "\"></").concat(shapeObject.tag, ">");
+      this.parent.insertAdjacentHTML('beforeend', element);
+      this.element = this.parent.lastElementChild;
+      return this;
+    }
+  }, {
+    key: "remove",
+    value: function remove() {
+      this.element.parentNode.removeChild(this.element);
+      return null;
+    }
+  }, {
+    key: "update",
+    value: function update(shape) {
+      this.element.style.top = "".concat(shape.top, "px");
+      this.element.style.left = "".concat(shape.left, "px");
+      this.element.style.width = "".concat(shape.width, "px");
+      this.element.style.height = "".concat(shape.height, "px");
+      this.element.style.zIndex = "".concat(shape.zIndex);
+      this.element.style.transform = "rotate(".concat(shape.rotation, "deg)");
+    }
+  }]);
+
+  return ShapeView;
+}();
+
+var _default = ShapeView;
+exports.default = _default;
+},{"../utils/Point":"utils/Point.js"}],"controllers/shapeController.js":[function(require,module,exports) {
+"use strict";
+
+Object.defineProperty(exports, "__esModule", {
+  value: true
+});
+exports.default = void 0;
+
+var _shapeModel = _interopRequireDefault(require("../models/shapeModel"));
+
+var _shapeView = _interopRequireDefault(require("../views/shapeView"));
+
+function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+
+function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+
+function _defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } }
+
+function _createClass(Constructor, protoProps, staticProps) { if (protoProps) _defineProperties(Constructor.prototype, protoProps); if (staticProps) _defineProperties(Constructor, staticProps); return Constructor; }
+
+var Shape = /*#__PURE__*/function () {
+  function Shape(options) {
+    _classCallCheck(this, Shape);
+
+    this.model = new _shapeModel.default(options);
+    this.view = new _shapeView.default();
+    this.id = this.model.id; // Bindings
+
+    this.add = this.add.bind(this);
+    this.getProperties = this.getProperties.bind(this);
+    this.getTransformOrigin = this.getTransformOrigin.bind(this);
+    this.makeActive = this.makeActive.bind(this);
+    this.setClickPosition = this.setClickPosition.bind(this);
+    this.setColor = this.setColor.bind(this);
+    this.setPosition = this.setPosition.bind(this);
+    this.setRotation = this.setRotation.bind(this);
+    this.setSize = this.setSize.bind(this);
+    this.setTransformOrigin = this.setTransformOrigin.bind(this);
+    this.update = this.update.bind(this);
+  }
+
+  _createClass(Shape, [{
+    key: "add",
+    value: function add(parent) {
+      this.view.add(parent, this.model);
+      return this;
+    }
+  }, {
+    key: "getProperties",
+    value: function getProperties() {
+      return this.model;
+    }
+  }, {
+    key: "getTransformOrigin",
+    value: function getTransformOrigin() {
+      return this.model.transformOrigin;
+    }
+  }, {
+    key: "makeActive",
+    value: function makeActive(layer) {
+      this.model.makeActive();
+    }
+  }, {
+    key: "remove",
+    value: function remove() {
+      this.view.remove();
+    }
+  }, {
+    key: "setClickPosition",
+    value: function setClickPosition(event) {
+      this.model.setClickPosition(event);
+      this.update();
+    }
+  }, {
+    key: "setColor",
+    value: function setColor(color) {
+      this.setColor(color);
+      this.update();
+    }
+  }, {
+    key: "setPosition",
+    value: function setPosition(left, top) {
+      this.model.setPosition(left, top);
+      this.update();
+    }
+  }, {
+    key: "setRotation",
+    value: function setRotation(deg) {
+      this.model.setRotation(deg);
+      this.update();
+    }
+  }, {
+    key: "setSize",
+    value: function setSize(width, height, origin) {
+      this.model.setSize(width, height, origin);
+      this.update();
+    }
+  }, {
+    key: "setTransformOrigin",
+    value: function setTransformOrigin(x, y) {
+      this.model.setTransformOrigin(x, y);
+      this.update();
+    }
+  }, {
+    key: "update",
+    value: function update() {
+      this.model.update();
+      this.model.setBoundsFromElement(this.view.element);
+      this.view.update(this.model);
+      if (this.transformHelper) this.transformHelper.update();
     }
   }]);
 
@@ -352,7 +532,7 @@ var Shape = /*#__PURE__*/function () {
 
 var _default = Shape;
 exports.default = _default;
-},{"./Point":"Point.js"}],"Layers.js":[function(require,module,exports) {
+},{"../models/shapeModel":"models/shapeModel.js","../views/shapeView":"views/shapeView.js"}],"models/layersModel.js":[function(require,module,exports) {
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -360,7 +540,7 @@ Object.defineProperty(exports, "__esModule", {
 });
 exports.default = void 0;
 
-var _Shape = _interopRequireDefault(require("./Shape"));
+var _shapeController = _interopRequireDefault(require("../controllers/shapeController"));
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
@@ -384,6 +564,7 @@ var Layers = /*#__PURE__*/function () {
     this.updates = {}; // Bindings //
 
     this.add = this.add.bind(this);
+    this.makeAllInactive = this.makeAllInactive.bind(this);
     this.remove = this.remove.bind(this);
     this.getLayerById = this.getLayerById.bind(this);
     this.getLayerIndex = this.getLayerIndex.bind(this);
@@ -392,18 +573,14 @@ var Layers = /*#__PURE__*/function () {
   _createClass(Layers, [{
     key: "add",
     value: function add(layerObject) {
-      layerObject.zIndex = this.layers.length;
+      layerObject.model.zIndex = this.layers.length;
       this.layers.push(layerObject);
-      var event = new Event('newlayer', {
-        bubbles: true
-      });
-      document.dispatchEvent(event);
     }
   }, {
     key: "duplicate",
     value: function duplicate(layerObject, newId) {
       var layer = this.getLayerById(layerObject.id);
-      var newLayer = new _Shape.default(layer);
+      var newLayer = new _shapeController.default(layer);
       newLayer.id = newId;
       newLayer.zIndex = newId;
       newLayer.name = newLayer.name + ' copy';
@@ -416,7 +593,7 @@ var Layers = /*#__PURE__*/function () {
     key: "getLayerById",
     value: function getLayerById(id) {
       return this.layers.find(function (layer) {
-        return layer.id === parseInt(id);
+        return layer.model.id === parseInt(id);
       });
     }
   }, {
@@ -435,6 +612,9 @@ var Layers = /*#__PURE__*/function () {
 
       return index;
     }
+  }, {
+    key: "makeAllInactive",
+    value: function makeAllInactive() {}
   }, {
     key: "moveLayerForward",
     value: function moveLayerForward(layer) {
@@ -497,10 +677,7 @@ var Layers = /*#__PURE__*/function () {
     key: "remove",
     value: function remove(object) {
       var index = this.getLayerIndex(object);
-      object.transformHelper.remove();
-      object.element.parentNode.removeChild(object.element);
       this.layers.splice(index, 1);
-      this.updates.removeActiveLayer = true;
     }
   }, {
     key: "updateAll",
@@ -526,9 +703,392 @@ var Layers = /*#__PURE__*/function () {
 
 var _default = Layers;
 exports.default = _default;
-},{"./Shape":"Shape.js"}],"Utils.js":[function(require,module,exports) {
+},{"../controllers/shapeController":"controllers/shapeController.js"}],"views/layersView.js":[function(require,module,exports) {
+"use strict";
 
-},{}],"Canvas.js":[function(require,module,exports) {
+Object.defineProperty(exports, "__esModule", {
+  value: true
+});
+exports.default = void 0;
+
+function _readOnlyError(name) { throw new Error("\"" + name + "\" is read-only"); }
+
+function _toConsumableArray(arr) { return _arrayWithoutHoles(arr) || _iterableToArray(arr) || _unsupportedIterableToArray(arr) || _nonIterableSpread(); }
+
+function _nonIterableSpread() { throw new TypeError("Invalid attempt to spread non-iterable instance.\nIn order to be iterable, non-array objects must have a [Symbol.iterator]() method."); }
+
+function _unsupportedIterableToArray(o, minLen) { if (!o) return; if (typeof o === "string") return _arrayLikeToArray(o, minLen); var n = Object.prototype.toString.call(o).slice(8, -1); if (n === "Object" && o.constructor) n = o.constructor.name; if (n === "Map" || n === "Set") return Array.from(o); if (n === "Arguments" || /^(?:Ui|I)nt(?:8|16|32)(?:Clamped)?Array$/.test(n)) return _arrayLikeToArray(o, minLen); }
+
+function _iterableToArray(iter) { if (typeof Symbol !== "undefined" && Symbol.iterator in Object(iter)) return Array.from(iter); }
+
+function _arrayWithoutHoles(arr) { if (Array.isArray(arr)) return _arrayLikeToArray(arr); }
+
+function _arrayLikeToArray(arr, len) { if (len == null || len > arr.length) len = arr.length; for (var i = 0, arr2 = new Array(len); i < len; i++) { arr2[i] = arr[i]; } return arr2; }
+
+function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+
+function _defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } }
+
+function _createClass(Constructor, protoProps, staticProps) { if (protoProps) _defineProperties(Constructor.prototype, protoProps); if (staticProps) _defineProperties(Constructor, staticProps); return Constructor; }
+
+var LayersPanelView = /*#__PURE__*/function () {
+  function LayersPanelView(listEl, options) {
+    _classCallCheck(this, LayersPanelView);
+
+    if (!options) options = {};
+    this.element = listEl;
+    this.draggedElement = null;
+    this.dropFailed = false;
+    this.target = null;
+    this.hoverPosition = null;
+    this.divider = {
+      element: document.createElement('li', {
+        id: 'divider'
+      }),
+      active: false
+    }; // Initialize
+
+    this.divider.element.classList.add('divider');
+    this.children = flattenChildren(_toConsumableArray(listEl.children));
+    this.betweenSensitivity = options.betweenSensitivity || 0.2;
+    this.children.forEach(function (el) {
+      return el.setAttribute('draggable', 'true');
+    });
+    this.element.addEventListener('click', function (event) {
+      if (event.target.getAttribute('data-list-component') === 'group-name' || event.target.getAttribute('data-list-component') === 'group-expand-btn') {
+        event.target.closest('.list-component-group').classList.toggle('collapsed');
+      }
+    }); // Bindings
+
+    this.dragEnd = this.dragEnd.bind(this);
+    this.dragStart = this.dragStart.bind(this);
+    this.dragOver = this.dragOver.bind(this);
+    this.dragLeave = this.dragLeave.bind(this);
+    this.drop = this.drop.bind(this);
+    this.makeAllInactive = this.makeAllInactive.bind(this);
+    this.nestElement = this.nestElement.bind(this);
+    this.recalculateChildren = this.recalculateChildren.bind(this);
+    this.removeDivider = this.removeDivider.bind(this);
+    this.setHoverPosition = this.setHoverPosition.bind(this); // Event Listeners
+
+    this.element.addEventListener('dragstart', this.dragStart);
+    this.element.addEventListener('drop', this.drop);
+    this.element.addEventListener('dragover', this.dragOver);
+    this.element.addEventListener('dragleave', this.dragLeave);
+    this.element.addEventListener('dragend', this.dragEnd);
+  }
+
+  _createClass(LayersPanelView, [{
+    key: "addLayer",
+    value: function addLayer(layer, options) {
+      var className = '';
+      if (layer.active) className = 'active';
+      if (!options) options = {};
+      var html = "<li id=\"for-".concat(options.targetId, "\" class=\"").concat(className, "\" draggable=\"true\">").concat(layer.name, "</li>");
+      this.element.insertAdjacentHTML('beforeend', html);
+      this.recalculateChildren();
+    }
+  }, {
+    key: "dragStart",
+    value: function dragStart(event, callback) {
+      // Initialize drop failed
+      this.dropFailed = true; // Grab the target element index for later
+
+      var targetIndex = this.children.indexOf(event.target);
+      event.dataTransfer.setData('text', targetIndex); // Cache it for easy reference
+
+      this.draggedElement = event.target;
+      this.draggedElement.classList.add('active-drag');
+      if (callback) callback();
+    }
+  }, {
+    key: "dragOver",
+    value: function dragOver(event, callback) {
+      event.preventDefault();
+      var divider = this.divider.element;
+      this.mousePosition = {
+        x: event.clientX,
+        y: event.clientY
+      };
+      this.draggedElement.style.display = 'none';
+
+      if (event.target !== divider && event.target !== this.element && event.target.getAttribute('data-list-component') !== 'group' && event.target.getAttribute('data-list-component') !== 'group-body') {
+        // Cache the current target
+        if (event) this.target = event.target; // Update the target bounds
+
+        this.targetBounds = event.target.getBoundingClientRect(); // Set the hover position based on new bounds
+
+        this.setHoverPosition();
+      }
+
+      if (event.target !== this.element) {
+        event.target.classList.remove('hover');
+      }
+
+      if (this.hoverPosition === 'bottom' && !this.isGroupComponent(event.target)) {
+        if (event.target === this.element || event.target === divider) return; // console.log('bottom');
+
+        if (!divider) {
+          event.target.insertAdjacentElement('afterend', this.divider.element);
+          divider = (_readOnlyError("divider"), event.target.nextSibling);
+        } else {
+          event.target.parentNode.insertBefore(divider, event.target.nextSibling);
+        }
+      }
+
+      if (this.hoverPosition === 'top' && !this.isGroupComponent(event.target)) {
+        if (event.target === this.element || event.target === divider) return; // console.log('top');
+
+        if (!divider) {
+          event.target.insertAdjacentElement('beforebegin', this.divider.element);
+          divider = (_readOnlyError("divider"), event.target.nextSibling);
+        } else {
+          event.target.parentNode.insertBefore(divider, event.target);
+        }
+      }
+
+      if (this.hoverPosition === 'top' && this.isGroupComponent(event.target, 'group-name')) {
+        if (event.target === this.element || event.target === divider) return; // console.log('top');
+
+        if (!divider) {
+          event.target.parentNode.insertAdjacentElement('beforebegin', this.divider.element);
+          divider = (_readOnlyError("divider"), event.target.parentNode.previousSibling);
+        } else {
+          event.target.parentNode.insertBefore(divider, event.target);
+        }
+      }
+
+      if (this.hoverPosition === 'center' && !this.isGroupComponent(event.target, 'group') && !this.isGroupComponent(event.target, 'group-body')) {
+        if (event.target !== this.element) event.target.classList.add('hover');
+        this.removeDivider();
+      }
+
+      if (callback) callback();
+    }
+  }, {
+    key: "dragEnd",
+    value: function dragEnd(event) {
+      // Reset the style attribute on the layer if the drop failed
+      if (this.dropFailed) {
+        this.draggedElement.setAttribute('style', '');
+        this.removeDivider();
+      }
+
+      this.dropSuccess = true;
+    }
+  }, {
+    key: "dragLeave",
+    value: function dragLeave(event, callback) {
+      event.target.classList.remove('hover');
+      if (callback) callback();
+    }
+  }, {
+    key: "drop",
+    value: function drop(event, callback) {
+      this.dropFailed = false;
+      var targetIndex = event.dataTransfer.getData('text');
+      var thisEl = this.children[targetIndex]; // Remove all helper styles/elements
+
+      this.removeDivider();
+      event.target.classList.remove('hover');
+      this.draggedElement.classList.remove('active-drag');
+      this.draggedElement.style.removeProperty('display'); // Place element
+
+      if (this.hoverPosition === 'top' && !this.isGroupComponent(this.target)) this.target.insertAdjacentElement('beforebegin', thisEl);
+      if (this.hoverPosition === 'bottom' && !this.isGroupComponent(this.target)) this.target.insertAdjacentElement('afterend', thisEl);
+      if (this.hoverPosition === 'center') this.nestElement(this.target, thisEl); // Place before group if dropped on top of group name
+
+      if (this.hoverPosition === 'top' && this.isGroupComponent(this.target, 'group-name')) this.target.parentNode.insertAdjacentElement('beforebegin', thisEl);
+      event.dataTransfer.clearData();
+      this.recalculateChildren(); // Optional callback
+
+      if (callback) callback();
+    }
+  }, {
+    key: "getLayerElementById",
+    value: function getLayerElementById(id) {
+      return document.getElementById("for-".concat(id));
+    }
+  }, {
+    key: "isGroupComponent",
+    value: function isGroupComponent(element, type) {
+      var thisType = element.getAttribute('data-list-component');
+      if (type) return thisType === type;
+
+      if (thisType === 'group' || thisType === 'group-name' || thisType === 'group-body') {
+        return true;
+      }
+    }
+  }, {
+    key: "nestElement",
+    value: function nestElement(target, thisEl) {
+      if (target.getAttribute('data-list-component') === 'group-name') {
+        target.nextSibling.insertAdjacentElement('beforeend', thisEl);
+      } else if (target.getAttribute('data-list-component') === 'group') {
+        target.lastChild.insertAdjacentElement('beforeend', thisEl);
+      } else if (target.getAttribute('data-list-component') === 'group-body') {
+        target.insertAdjacentElement('beforeend', thisEl);
+      } else {
+        var li = document.createElement('li');
+        li.setAttribute('draggable', 'true');
+        li.setAttribute('data-list-component', 'group');
+        li.classList.add('list-component-group');
+        li.innerHTML = "\n    <div class=\"group list-component-group-name\" data-list-component=\"group-name\">\n    \t<span class=\"expand-icon expanded\" data-list-component=\"group-expand-btn\">&rsaquo;</span>\n    \tgroup\n    </div>";
+        var ul = document.createElement('ul');
+        ul.setAttribute('data-list-component', 'group-body');
+        ul.classList.add('list-component-group-body');
+        li.insertAdjacentElement('beforeend', ul);
+        target.insertAdjacentElement('beforebegin', li);
+        ul.insertAdjacentElement('afterbegin', target);
+        ul.insertAdjacentElement('afterbegin', thisEl);
+      }
+    }
+  }, {
+    key: "recalculateChildren",
+    value: function recalculateChildren() {
+      // Must re-index children to reset correct position
+      this.children = flattenChildren(_toConsumableArray(this.element.children));
+    }
+  }, {
+    key: "remove",
+    value: function remove(layer) {
+      var layerEl = this.getLayerElementById(layer.id);
+      layerEl.parentNode.removeChild(layerEl);
+    }
+  }, {
+    key: "removeDivider",
+    value: function removeDivider(event) {
+      var divider = this.divider.element;
+      if (divider.parentNode) divider.parentNode.removeChild(divider);
+    }
+  }, {
+    key: "makeActive",
+    value: function makeActive(layer) {
+      var layerEl = this.getLayerElementById(layer.id);
+      if (layerEl) layerEl.classList.add('active');
+    }
+  }, {
+    key: "makeAllInactive",
+    value: function makeAllInactive() {
+      var children = flattenChildren(this.element.children);
+      children.forEach(function (child) {
+        return child.classList.remove('active');
+      });
+    }
+  }, {
+    key: "setHoverPosition",
+    value: function setHoverPosition(event) {
+      if (this.mousePosition.y > this.targetBounds.top + this.targetBounds.height - this.targetBounds.height * this.betweenSensitivity) {
+        this.hoverPosition = 'bottom';
+      } else if (this.mousePosition.y < this.targetBounds.top + this.targetBounds.height * this.betweenSensitivity) {
+        this.hoverPosition = 'top';
+      } else {
+        this.hoverPosition = 'center';
+      }
+    }
+  }]);
+
+  return LayersPanelView;
+}();
+
+function flattenChildren(arr) {
+  var newArr = [];
+
+  for (var i = 0; i < arr.length; i++) {
+    newArr.push(arr[i]);
+    if (arr[i].children.length > 0) newArr.push.apply(newArr, _toConsumableArray(flattenChildren(_toConsumableArray(arr[i].children))));
+  }
+
+  return newArr;
+}
+
+var _default = LayersPanelView;
+exports.default = _default;
+},{}],"controllers/layersController.js":[function(require,module,exports) {
+"use strict";
+
+Object.defineProperty(exports, "__esModule", {
+  value: true
+});
+exports.default = void 0;
+
+var _layersModel = _interopRequireDefault(require("../models/layersModel"));
+
+var _layersView = _interopRequireDefault(require("../views/layersView"));
+
+function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+
+function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+
+function _defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } }
+
+function _createClass(Constructor, protoProps, staticProps) { if (protoProps) _defineProperties(Constructor.prototype, protoProps); if (staticProps) _defineProperties(Constructor, staticProps); return Constructor; }
+
+var LayersPanel = /*#__PURE__*/function () {
+  function LayersPanel() {
+    _classCallCheck(this, LayersPanel);
+
+    this.model = new _layersModel.default();
+    this.view = new _layersView.default(document.getElementById('layers-panel-list')); // Bindings
+
+    this.add = this.add.bind(this);
+    this.duplicate = this.duplicate.bind(this);
+    this.getLayerById = this.getLayerById.bind(this);
+    this.makeActive = this.makeActive.bind(this);
+    this.moveLayerForward = this.moveLayerForward.bind(this);
+    this.moveLayerBackward = this.moveLayerBackward.bind(this);
+    this.remove = this.remove.bind(this);
+  }
+
+  _createClass(LayersPanel, [{
+    key: "add",
+    value: function add(layer) {
+      this.model.add(layer);
+      var options = {
+        targetId: layer.model.id
+      };
+      this.view.addLayer(layer.model, options);
+    }
+  }, {
+    key: "duplicate",
+    value: function duplicate(layer) {
+      this.model.duplicate(layer.model);
+    }
+  }, {
+    key: "getLayerById",
+    value: function getLayerById(id) {
+      return this.model.getLayerById(id);
+    }
+  }, {
+    key: "makeAllInactive",
+    value: function makeAllInactive() {
+      this.view.makeAllInactive();
+    }
+  }, {
+    key: "makeActive",
+    value: function makeActive(layer) {
+      this.view.makeActive(layer);
+    }
+  }, {
+    key: "moveLayerForward",
+    value: function moveLayerForward(layer) {}
+  }, {
+    key: "moveLayerBackward",
+    value: function moveLayerBackward(layer) {}
+  }, {
+    key: "remove",
+    value: function remove(layer) {
+      this.model.remove(layer.model);
+      this.view.remove(layer.model);
+    }
+  }]);
+
+  return LayersPanel;
+}();
+
+var _default = LayersPanel;
+exports.default = _default;
+},{"../models/layersModel":"models/layersModel.js","../views/layersView":"views/layersView.js"}],"Canvas.js":[function(require,module,exports) {
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -538,11 +1098,11 @@ exports.default = void 0;
 
 var _TransformHelper = _interopRequireDefault(require("./TransformHelper"));
 
-var _Shape = _interopRequireDefault(require("./Shape"));
+var _shapeController = _interopRequireDefault(require("./controllers/shapeController"));
 
-var _Layers = _interopRequireDefault(require("./Layers"));
+var _layersController = _interopRequireDefault(require("./controllers/layersController"));
 
-var _Utils = _interopRequireDefault(require("./Utils"));
+var _Point = _interopRequireDefault(require("./utils/Point"));
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
@@ -566,7 +1126,7 @@ var Canvas = /*#__PURE__*/function () {
     this.activeLayer = undefined;
     this.mode = 'draw';
     this.editMode = 'select';
-    this.layers = new _Layers.default();
+    this.layers = new _layersController.default();
     this.transformHelper = new _TransformHelper.default();
     this.updates = {};
     this.modifiers = {
@@ -591,8 +1151,9 @@ var Canvas = /*#__PURE__*/function () {
   _createClass(Canvas, [{
     key: "drawShape",
     value: function drawShape(options) {
-      var shape = new _Shape.default(options);
+      var shape = new _shapeController.default(options);
       var parent = this.element;
+      this.layers.makeAllInactive();
       this.makeActiveLayer(shape.add(parent));
       this.layers.add(shape);
       this.transformHelper.set(shape);
@@ -610,6 +1171,9 @@ var Canvas = /*#__PURE__*/function () {
 
         case 46 || 8:
           this.layers.remove(this.activeLayer);
+          this.activeLayer.remove();
+          this.activeLayer = undefined;
+          this.transformHelper.remove();
           break;
         // up
 
@@ -623,6 +1187,7 @@ var Canvas = /*#__PURE__*/function () {
 
         case 68:
           var newLayer = this.layers.duplicate(this.activeLayer, this.id);
+          this.drawShape(this.layers.model);
           this.makeActiveLayer(newLayer);
           this.id++;
           break;
@@ -648,11 +1213,17 @@ var Canvas = /*#__PURE__*/function () {
   }, {
     key: "makeActiveLayer",
     value: function makeActiveLayer(object) {
-      if (this.activeLayer) this.activeLayer.active = false;
+      // Make the shape on canvas active
+      if (this.activeLayer) {
+        this.activeLayer.active = false;
+        this.layers.makeAllInactive();
+      }
+
       this.activeLayer = object;
-      this.activeLayer.active = true;
-      this.transformHelper.set(this.activeLayer);
-      this.updates.changeActiveLayer = true;
+      this.activeLayer.makeActive();
+      this.transformHelper.set(object); // Make the layer in layers panel active
+
+      this.layers.makeActive(this.activeLayer);
     }
   }, {
     key: "removeActiveLayer",
@@ -675,8 +1246,10 @@ var Canvas = /*#__PURE__*/function () {
         width: 0,
         type: this.shape,
         id: this.id,
-        backgroundColor: this.shapeColor
-      };
+        backgroundColor: this.shapeColor,
+        transformOrigin: copy(this.mousePosition)
+      }; // HANDLE CANVAS INTERACTIONS
+
       if (this.mode === 'draw') this.drawShape(shapeOptions);
 
       if (this.mode === 'edit') {
@@ -709,7 +1282,7 @@ var Canvas = /*#__PURE__*/function () {
 
       if (this.mode === 'edit' && this.activeLayer && event.target.id === 'transform-helper-box') {
         this.editMode = 'move';
-        this.activeLayer.updateOnClick(event);
+        this.activeLayer.setClickPosition(event);
       }
     }
   }, {
@@ -736,11 +1309,11 @@ var Canvas = /*#__PURE__*/function () {
       };
 
       if (this.isMouseDown && this.mode === 'draw') {
-        this.resizeActiveLayer();
+        this.resizeLayer(this.activeLayer);
       }
 
       if (this.isMouseDown && this.editMode === 'resize') {
-        this.resizeActiveLayer();
+        this.resizeLayer(this.activeLayer);
       }
 
       if (this.isMouseDown && this.editMode === 'rotate') {
@@ -748,7 +1321,7 @@ var Canvas = /*#__PURE__*/function () {
       }
 
       if (this.isMouseDown === true && this.mode === 'edit' && this.editMode === 'move' && this.activeLayer) {
-        this.activeLayer.move(this.mousePosition.x, this.mousePosition.y);
+        this.activeLayer.setPosition(this.mousePosition.x, this.mousePosition.y);
       }
     }
   }, {
@@ -760,23 +1333,29 @@ var Canvas = /*#__PURE__*/function () {
       };
     }
   }, {
-    key: "resizeActiveLayer",
-    value: function resizeActiveLayer() {
-      if (this.mousePosition.x >= this.transformOrigin.x) {
-        this.drawWidth = this.mousePosition.x - this.transformOrigin.x;
+    key: "resizeLayer",
+    value: function resizeLayer(layer) {
+      var mousePosition = this.mousePosition;
+      var activeLayer = layer.getProperties();
+      var transformOrigin = this.transformOrigin;
+
+      if (mousePosition.x >= transformOrigin.x) {
+        this.drawWidth = mousePosition.x - transformOrigin.x;
       } else {
-        this.drawWidth = this.transformOrigin.x - this.mousePosition.x;
-        this.activeLayer.left = this.transformOrigin.x - this.drawWidth;
+        this.drawWidth = transformOrigin.x - mousePosition.x;
+        activeLayer.left = transformOrigin.x - this.drawWidth;
       }
 
-      if (this.mousePosition.y >= this.transformOrigin.y) {
-        this.drawHeight = this.mousePosition.y - this.transformOrigin.y;
+      if (mousePosition.y >= transformOrigin.y) {
+        this.drawHeight = mousePosition.y - transformOrigin.y;
       } else {
-        this.drawHeight = this.transformOrigin.y - this.mousePosition.y;
-        this.activeLayer.top = this.transformOrigin.y - this.drawHeight;
+        this.drawHeight = transformOrigin.y - mousePosition.y;
+        activeLayer.top = transformOrigin.y - this.drawHeight;
       }
 
-      this.activeLayer.setSize(this.drawWidth, this.drawHeight);
+      layer.setSize(this.drawWidth, this.drawHeight);
+      layer.setTransformOrigin(transformOrigin.x, transformOrigin.y);
+      this.transformHelper.update();
     }
   }, {
     key: "rotateActiveLayer",
@@ -788,41 +1367,44 @@ var Canvas = /*#__PURE__*/function () {
   }, {
     key: "setTransformOrigin",
     value: function setTransformOrigin(event) {
+      var activeLayer = this.activeLayer.getProperties();
+      var classes = event.target.classList;
+      var x, y; // MODIFIERS
+
       if (this.modifiers.altDown) {
-        this.transformOrigin = {
-          x: this.activeLayer.left + this.activeLayer.width / 2,
-          y: this.activeLayer.top + this.activeLayer.height / 2
-        };
+        x = activeLayer.left + activeLayer.width / 2;
+        y = activeLayer.top + activeLayer.height / 2;
+        activeLayer.setTransformOrigin(x, y);
+        this.transformOrigin = new _Point.default(x, y);
+        this.transformHelper.update();
         return;
+      } // Normal case
+
+
+      if (classes.contains('bottom-right')) {
+        x = activeLayer.left;
+        y = activeLayer.top;
       }
 
-      if (event.target.classList.contains('bottom-right')) {
-        this.transformOrigin = {
-          x: this.activeLayer.left,
-          y: this.activeLayer.top
-        };
+      if (classes.contains('bottom-left')) {
+        x = activeLayer.left + activeLayer.width;
+        y = activeLayer.top;
       }
 
-      if (event.target.classList.contains('bottom-left')) {
-        this.transformOrigin = {
-          x: this.activeLayer.left + this.activeLayer.width,
-          y: this.activeLayer.top
-        };
+      if (classes.contains('top-left')) {
+        x = activeLayer.left + activeLayer.width;
+        y = activeLayer.top + activeLayer.height;
       }
 
-      if (event.target.classList.contains('top-left')) {
-        this.transformOrigin = {
-          x: this.activeLayer.left + this.activeLayer.width,
-          y: this.activeLayer.top + this.activeLayer.height
-        };
-      }
+      if (classes.contains('top-right')) {
+        x = activeLayer.left;
+        y = activeLayer.top + activeLayer.height;
+      } // Set transformation origin
 
-      if (event.target.classList.contains('top-right')) {
-        this.transformOrigin = {
-          x: this.activeLayer.left,
-          y: this.activeLayer.top + this.activeLayer.height
-        };
-      }
+
+      activeLayer.setTransformOrigin(x, y);
+      this.transformOrigin = new _Point.default(x, y);
+      this.transformHelper.update();
     }
   }]);
 
@@ -846,287 +1428,10 @@ function rotationAngle(cx, cy, ex, ey) {
 
 var _default = Canvas;
 exports.default = _default;
-},{"./TransformHelper":"TransformHelper.js","./Shape":"Shape.js","./Layers":"Layers.js","./Utils":"Utils.js"}],"LayersPanel.js":[function(require,module,exports) {
-"use strict";
-
-Object.defineProperty(exports, "__esModule", {
-  value: true
-});
-exports.default = void 0;
-
-function _readOnlyError(name) { throw new Error("\"" + name + "\" is read-only"); }
-
-function _toConsumableArray(arr) { return _arrayWithoutHoles(arr) || _iterableToArray(arr) || _unsupportedIterableToArray(arr) || _nonIterableSpread(); }
-
-function _nonIterableSpread() { throw new TypeError("Invalid attempt to spread non-iterable instance.\nIn order to be iterable, non-array objects must have a [Symbol.iterator]() method."); }
-
-function _unsupportedIterableToArray(o, minLen) { if (!o) return; if (typeof o === "string") return _arrayLikeToArray(o, minLen); var n = Object.prototype.toString.call(o).slice(8, -1); if (n === "Object" && o.constructor) n = o.constructor.name; if (n === "Map" || n === "Set") return Array.from(o); if (n === "Arguments" || /^(?:Ui|I)nt(?:8|16|32)(?:Clamped)?Array$/.test(n)) return _arrayLikeToArray(o, minLen); }
-
-function _iterableToArray(iter) { if (typeof Symbol !== "undefined" && Symbol.iterator in Object(iter)) return Array.from(iter); }
-
-function _arrayWithoutHoles(arr) { if (Array.isArray(arr)) return _arrayLikeToArray(arr); }
-
-function _arrayLikeToArray(arr, len) { if (len == null || len > arr.length) len = arr.length; for (var i = 0, arr2 = new Array(len); i < len; i++) { arr2[i] = arr[i]; } return arr2; }
-
-function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
-
-function _defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } }
-
-function _createClass(Constructor, protoProps, staticProps) { if (protoProps) _defineProperties(Constructor.prototype, protoProps); if (staticProps) _defineProperties(Constructor, staticProps); return Constructor; }
-
-var Sortable = /*#__PURE__*/function () {
-  function Sortable(listEl, options) {
-    _classCallCheck(this, Sortable);
-
-    if (!options) options = {};
-    this.element = listEl;
-    this.draggedElement = null;
-    this.target = null;
-    this.hoverPosition = null;
-    this.divider = {
-      element: document.createElement('li', {
-        id: 'divider'
-      }),
-      active: false
-    }; // Initialize
-
-    this.divider.element.classList.add('divider');
-    this.children = flattenChildren(_toConsumableArray(listEl.children));
-    this.betweenSensitivity = options.betweenSensitivity || 0.2;
-    this.children.forEach(function (el) {
-      return el.setAttribute('draggable', 'true');
-    });
-    this.element.addEventListener('click', function (event) {
-      if (event.target.getAttribute('data-list-component') === 'group-name' || event.target.getAttribute('data-list-component') === 'group-expand-btn') {
-        event.target.closest('.list-component-group').classList.toggle('collapsed');
-      }
-    }); // Bindings
-
-    this.dragStart = this.dragStart.bind(this);
-    this.dragOver = this.dragOver.bind(this);
-    this.dragLeave = this.dragLeave.bind(this);
-    this.drop = this.drop.bind(this);
-    this.makeAllInactive = this.makeAllInactive.bind(this);
-    this.nestElement = this.nestElement.bind(this);
-    this.recalculateChildren = this.recalculateChildren.bind(this);
-    this.removeDivider = this.removeDivider.bind(this);
-    this.setHoverPosition = this.setHoverPosition.bind(this); // Event Listeners
-
-    this.element.addEventListener('dragstart', this.dragStart);
-    this.element.addEventListener('drop', this.drop);
-    this.element.addEventListener('dragover', this.dragOver);
-    this.element.addEventListener('dragleave', this.dragLeave);
-  }
-
-  _createClass(Sortable, [{
-    key: "addLayer",
-    value: function addLayer(layer, options) {
-      var className = '';
-      if (layer.active) className = 'active';
-      if (!options) options = {};
-      var html = "<li id=\"for-".concat(options.targetId, "\" class=\"").concat(className, "\" draggable=\"true\">").concat(layer.name, "</li>");
-      this.element.insertAdjacentHTML('beforeend', html);
-      this.recalculateChildren();
-    }
-  }, {
-    key: "dragStart",
-    value: function dragStart(event, callback) {
-      var targetIndex = this.children.indexOf(event.target);
-      event.dataTransfer.setData('text', targetIndex);
-      this.draggedElement = event.target;
-      this.draggedElement.classList.add('active');
-      if (callback) callback();
-    }
-  }, {
-    key: "dragOver",
-    value: function dragOver(event, callback) {
-      event.preventDefault();
-      var divider = this.divider.element;
-      this.mousePosition = {
-        x: event.clientX,
-        y: event.clientY
-      };
-      this.draggedElement.style.display = 'none';
-
-      if (event.target !== divider && event.target !== this.element && event.target.getAttribute('data-list-component') !== 'group' && event.target.getAttribute('data-list-component') !== 'group-body') {
-        // Cache the current target
-        if (event) this.target = event.target; // Update the target bounds
-
-        this.targetBounds = event.target.getBoundingClientRect(); // Set the hover position based on new bounds
-
-        this.setHoverPosition();
-      }
-
-      if (event.target !== this.element) {
-        event.target.classList.remove('hover');
-      }
-
-      if (this.hoverPosition === 'bottom' && !this.isGroupComponent(event.target)) {
-        if (event.target === this.element || event.target === divider) return;
-
-        if (!divider) {
-          event.target.insertAdjacentElement('afterend', this.divider.element);
-          divider = (_readOnlyError("divider"), event.target.nextSibling);
-        } else {
-          event.target.parentNode.insertBefore(divider, event.target.nextSibling);
-        }
-      }
-
-      if (this.hoverPosition === 'top' && !this.isGroupComponent(event.target)) {
-        if (event.target === this.element || event.target === divider) return;
-
-        if (!divider) {
-          event.target.insertAdjacentElement('beforebegin', this.divider.element);
-          divider = (_readOnlyError("divider"), event.target.nextSibling);
-        } else {
-          event.target.parentNode.insertBefore(divider, event.target);
-        }
-      }
-
-      if (this.hoverPosition === 'top' && this.isGroupComponent(event.target, 'group-name')) {
-        if (event.target === this.element || event.target === divider) return;
-
-        if (!divider) {
-          event.target.parentNode.insertAdjacentElement('beforebegin', this.divider.element);
-          divider = (_readOnlyError("divider"), event.target.parentNode.previousSibling);
-        } else {
-          event.target.parentNode.insertBefore(divider, event.target);
-        }
-      }
-
-      if (this.hoverPosition === 'center' && !this.isGroupComponent(event.target, 'group') && !this.isGroupComponent(event.target, 'group-body')) {
-        if (event.target !== this.element) event.target.classList.add('hover');
-        this.removeDivider();
-      }
-
-      if (callback) callback();
-    }
-  }, {
-    key: "dragLeave",
-    value: function dragLeave(event, callback) {
-      event.target.classList.remove('hover');
-      if (callback) callback();
-    }
-  }, {
-    key: "drop",
-    value: function drop(event, callback) {
-      var targetIndex = event.dataTransfer.getData('text');
-      var thisEl = this.children[targetIndex]; // Remove all helper styles/elements
-
-      this.removeDivider();
-      event.target.classList.remove('hover');
-      this.draggedElement.classList.remove('active');
-      this.draggedElement.style.removeProperty('display'); // Place element
-
-      if (this.hoverPosition === 'top' && !this.isGroupComponent(this.target)) this.target.insertAdjacentElement('beforebegin', thisEl);
-      if (this.hoverPosition === 'bottom' && !this.isGroupComponent(this.target)) this.target.insertAdjacentElement('afterend', thisEl);
-      if (this.hoverPosition === 'center') this.nestElement(this.target, thisEl); // Place before group if dropped on top of group name
-
-      if (this.hoverPosition === 'top' && this.isGroupComponent(this.target, 'group-name')) this.target.parentNode.insertAdjacentElement('beforebegin', thisEl);
-      event.dataTransfer.clearData();
-      this.recalculateChildren(); // Optional callback
-
-      if (callback) callback();
-    }
-  }, {
-    key: "isGroupComponent",
-    value: function isGroupComponent(element, type) {
-      var thisType = element.getAttribute('data-list-component');
-      if (type) return thisType === type;
-
-      if (thisType === 'group' || thisType === 'group-name' || thisType === 'group-body') {
-        return true;
-      }
-    }
-  }, {
-    key: "nestElement",
-    value: function nestElement(target, thisEl) {
-      if (target.getAttribute('data-list-component') === 'group-name') {
-        target.nextSibling.insertAdjacentElement('beforeend', thisEl);
-      } else if (target.getAttribute('data-list-component') === 'group') {
-        target.lastChild.insertAdjacentElement('beforeend', thisEl);
-      } else if (target.getAttribute('data-list-component') === 'group-body') {
-        target.insertAdjacentElement('beforeend', thisEl);
-      } else {
-        var li = document.createElement('li');
-        li.setAttribute('draggable', 'true');
-        li.setAttribute('data-list-component', 'group');
-        li.classList.add('list-component-group');
-        li.innerHTML = "\n<div class=\"group list-component-group-name\" data-list-component=\"group-name\">\n\t<span class=\"expand-icon expanded\" data-list-component=\"group-expand-btn\">&rsaquo;</span>\n\tgroup\n</div>";
-        var ul = document.createElement('ul');
-        ul.setAttribute('data-list-component', 'group-body');
-        ul.classList.add('list-component-group-body');
-        li.insertAdjacentElement('beforeend', ul);
-        target.insertAdjacentElement('beforebegin', li);
-        ul.insertAdjacentElement('afterbegin', target);
-        ul.insertAdjacentElement('afterbegin', thisEl);
-      }
-    }
-  }, {
-    key: "recalculateChildren",
-    value: function recalculateChildren() {
-      // Must re-index children to reset correct position
-      this.children = flattenChildren(_toConsumableArray(this.element.children));
-    }
-  }, {
-    key: "remove",
-    value: function remove(layer) {
-      layer.parentNode.removeChild(layer);
-    }
-  }, {
-    key: "removeDivider",
-    value: function removeDivider(event) {
-      var divider = this.divider.element;
-      if (divider.parentNode) divider.parentNode.removeChild(divider);
-    }
-  }, {
-    key: "makeActive",
-    value: function makeActive(layer) {
-      layer.classList.add('active');
-    }
-  }, {
-    key: "makeAllInactive",
-    value: function makeAllInactive() {
-      var children = flattenChildren(this.element.children);
-      children.forEach(function (child) {
-        return child.classList.remove('active');
-      });
-    }
-  }, {
-    key: "setHoverPosition",
-    value: function setHoverPosition(event) {
-      if (this.mousePosition.y > this.targetBounds.top + this.targetBounds.height - this.targetBounds.height * this.betweenSensitivity) {
-        this.hoverPosition = 'bottom';
-      } else if (this.mousePosition.y < this.targetBounds.top + this.targetBounds.height * this.betweenSensitivity) {
-        this.hoverPosition = 'top';
-      } else {
-        this.hoverPosition = 'center';
-      }
-    }
-  }]);
-
-  return Sortable;
-}();
-
-function flattenChildren(arr) {
-  var newArr = [];
-
-  for (var i = 0; i < arr.length; i++) {
-    newArr.push(arr[i]);
-    if (arr[i].children.length > 0) newArr.push.apply(newArr, _toConsumableArray(flattenChildren(_toConsumableArray(arr[i].children))));
-  }
-
-  return newArr;
-}
-
-var _default = Sortable;
-exports.default = _default;
-},{}],"index.js":[function(require,module,exports) {
+},{"./TransformHelper":"TransformHelper.js","./controllers/shapeController":"controllers/shapeController.js","./controllers/layersController":"controllers/layersController.js","./utils/Point":"utils/Point.js"}],"index.js":[function(require,module,exports) {
 "use strict";
 
 var _Canvas = _interopRequireDefault(require("./Canvas"));
-
-var _LayersPanel = _interopRequireDefault(require("./LayersPanel"));
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
@@ -1153,108 +1458,41 @@ var App = /*#__PURE__*/function () {
     _classCallCheck(this, App);
 
     this.canvas = new _Canvas.default(options.canvas);
-    this.layersPanel = new _LayersPanel.default(options.layersListElement);
     this.menu = options.menu;
-    this.updates = [];
+    this.updates = []; // Bindings
+
     this.handleUpdates = this.handleUpdates.bind(this);
     this.mousedown = this.mousedown.bind(this);
     this.mouseup = this.mouseup.bind(this);
-    this.keydown = this.keydown.bind(this);
-    this.newlayer = this.newlayer.bind(this);
-    document.addEventListener('newlayer', this.newlayer);
+    this.keydown = this.keydown.bind(this); // Event Listeners
+
     document.addEventListener('mousedown', this.mousedown);
     document.addEventListener('mouseup', this.mouseup);
     document.addEventListener('keydown', this.keydown);
   }
 
   _createClass(App, [{
-    key: "changeactivelayer",
-    value: function changeactivelayer() {
-      var layerId = "for-".concat(this.canvas.activeLayer.id);
-      var layer = document.getElementById(layerId);
-      this.layersPanel.makeAllInactive();
-      this.layersPanel.makeActive(layer);
-    }
-  }, {
     key: "handleUpdates",
-    value: function handleUpdates() {
-      var _this = this;
-
-      this.pullUpdates(this.canvas);
-      this.pullUpdates(this.canvas.layers);
-      this.updates.forEach(function (update) {
-        switch (update) {
-          case 'changeActiveLayer':
-            _this.changeactivelayer();
-
-            break;
-
-          case 'removeActiveLayer':
-            _this.removeactivelayer();
-
-            break;
-
-          default:
-            break;
-        }
-
-        _this.updates = [];
-      });
-    }
+    value: function handleUpdates() {}
   }, {
     key: "pullUpdates",
-    value: function pullUpdates(module) {
-      var updates = module.updates;
-      if (!module.updates) return;
-      var keys = Object.keys(updates);
-
-      for (var _i = 0, _keys = keys; _i < _keys.length; _i++) {
-        var key = _keys[_i];
-
-        if (updates[key] === true) {
-          this.updates.push(key);
-          updates[key] = null;
-        }
-      }
-    }
+    value: function pullUpdates(module) {}
   }, {
     key: "mousedown",
     value: function mousedown(event) {
-      this.handleUpdates();
-
-      if (event.target.id) {
-        var id = event.target.id;
-        var layerId = id.split('-')[1];
-        var layer = this.canvas.layers.getLayerById(layerId);
-        if (layer) this.canvas.makeActiveLayer(layer);
+      // HANDLE LAYERS PANEL INTERACTIONS
+      if (event.target.closest("#".concat(this.canvas.layers.view.element.id))) {
+        var id = event.target.id.split('-')[1];
+        var thisLayer = this.canvas.layers.getLayerById(id);
+        if (thisLayer) this.canvas.makeActiveLayer(thisLayer);
       }
     }
   }, {
     key: "mouseup",
-    value: function mouseup(event) {
-      this.handleUpdates();
-    }
-  }, {
-    key: "newlayer",
-    value: function newlayer(event) {
-      this.layersPanel.makeAllInactive();
-      this.layersPanel.addLayer(this.canvas.activeLayer, {
-        targetId: this.canvas.activeLayer.id
-      });
-    }
-  }, {
-    key: "removeactivelayer",
-    value: function removeactivelayer() {
-      var layerId = "for-".concat(this.canvas.activeLayer.id);
-      var layer = document.getElementById(layerId);
-      this.layersPanel.makeAllInactive();
-      this.layersPanel.remove(layer);
-    }
+    value: function mouseup(event) {}
   }, {
     key: "keydown",
-    value: function keydown(event) {
-      this.handleUpdates();
-    }
+    value: function keydown(event) {}
   }]);
 
   return App;
@@ -1264,7 +1502,7 @@ var appOptions = {
   canvas: document.getElementById('canvas'),
   layersListElement: document.getElementById('layers-panel-list')
 };
-var app = new App(appOptions);
+var app = new App(appOptions); //TODO: EXPORT THESE INTO A UI CLASS
 
 var shapeBtns = _toConsumableArray(document.querySelectorAll('.shape-btn'));
 
@@ -1279,7 +1517,6 @@ var modeBtns = _toConsumableArray(document.querySelectorAll('.mode'));
 modeBtns.forEach(function (el) {
   return el.addEventListener('click', function () {
     var mode = el.getAttribute('data-mode');
-    console.log(app);
     app.canvas.mode = mode;
     app.canvas.element.className = mode;
   });
@@ -1331,7 +1568,7 @@ colorPicker.addEventListener('input', function () {
   app.canvas.shapeColor = colorPicker.value;
   if (app.canvas.activeLayer) app.canvas.activeLayer.setColor(app.canvas.shapeColor);
 });
-},{"./Canvas":"Canvas.js","./LayersPanel":"LayersPanel.js"}],"../../node_modules/parcel/src/builtins/hmr-runtime.js":[function(require,module,exports) {
+},{"./Canvas":"Canvas.js"}],"../../node_modules/parcel/src/builtins/hmr-runtime.js":[function(require,module,exports) {
 var global = arguments[3];
 var OVERLAY_ID = '__parcel__error__overlay__';
 var OldModule = module.bundle.Module;
@@ -1359,7 +1596,7 @@ var parent = module.bundle.parent;
 if ((!parent || !parent.isParcelRequire) && typeof WebSocket !== 'undefined') {
   var hostname = "" || location.hostname;
   var protocol = location.protocol === 'https:' ? 'wss' : 'ws';
-  var ws = new WebSocket(protocol + '://' + hostname + ':' + "49503" + '/');
+  var ws = new WebSocket(protocol + '://' + hostname + ':' + "49954" + '/');
 
   ws.onmessage = function (event) {
     checkedAssets = {};
