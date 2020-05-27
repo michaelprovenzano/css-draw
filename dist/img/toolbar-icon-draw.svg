@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="19px" height="19px" viewBox="0 0 19 19" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+    <!-- Generator: Sketch 52.2 (67145) - http://www.bohemiancoding.com/sketch -->
+    <title>toolbar-icon-draw</title>
+    <desc>Created with Sketch.</desc>
+    <g id="Symbols" stroke="none" stroke-width="1" fill="none" fill-rule="evenodd">
+        <g id="Toolbar/Button/Draw" transform="translate(-9.000000, -8.000000)" fill="#D8D8D8" fill-rule="nonzero">
+            <path d="M16,10 L20,10 L20,25 L16,25 L16,10 Z M17,6 L19,6 C19.5522847,6 20,6.44771525 20,7 L20,9 L16,9 L16,7 C16,6.44771525 16.4477153,6 17,6 Z M16,26 L20,26 L18.4688674,30.133548 C18.3729488,30.3924963 18.0852723,30.524658 17.826324,30.4287394 C17.6895916,30.3780915 17.5817805,30.2702803 17.5311326,30.133548 L16,26 Z" id="toolbar-icon-draw" transform="translate(18.000000, 18.230004) rotate(-315.000000) translate(-18.000000, -18.230004) "></path>
+        </g>
+    </g>
+</svg>

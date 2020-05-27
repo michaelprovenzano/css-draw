@@ -233,7 +233,7 @@ var TransformHelper = /*#__PURE__*/function () {
 
 var _default = TransformHelper;
 exports.default = _default;
-},{"./utils/Point":"utils/Point.js"}],"models/shapeModel.js":[function(require,module,exports) {
+},{"./utils/Point":"utils/Point.js"}],"models/layerModel.js":[function(require,module,exports) {
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -251,12 +251,12 @@ function _defineProperties(target, props) { for (var i = 0; i < props.length; i+
 
 function _createClass(Constructor, protoProps, staticProps) { if (protoProps) _defineProperties(Constructor.prototype, protoProps); if (staticProps) _defineProperties(Constructor, staticProps); return Constructor; }
 
-var ShapeModel = /*#__PURE__*/function () {
-  function ShapeModel(options) {
-    _classCallCheck(this, ShapeModel);
+var LayerModel = /*#__PURE__*/function () {
+  function LayerModel(options) {
+    _classCallCheck(this, LayerModel);
 
     this.id = options.id;
-    this.name = "Layer ".concat(options.id);
+    this.name = options.name || "Layer ".concat(options.id);
     this.type = options.type || 'rectangle';
     this.tag = options.tag || 'div';
     this.top = options.top;
@@ -273,19 +273,23 @@ var ShapeModel = /*#__PURE__*/function () {
     this.borderColor = options.borderColor || '#000000';
     this.borderStyle = options.borderStyle || 'solid';
     this.borderRadius = options.borderRadius || [0, 0, 0, 0];
+    options.hasOwnProperty('visible') ? this.visible = options.visible : this.visible = true;
     this.active = true;
     this.zIndex = 1; // Bindings ///////
 
     this.makeActive = this.makeActive.bind(this);
     this.setBoundsFromElement = this.setBoundsFromElement.bind(this);
     this.setSize = this.setSize.bind(this);
+    this.setRelativePosition = this.setRelativePosition.bind(this);
+    this.setRelativeProperties = this.setRelativeProperties.bind(this);
+    this.setRelativeSize = this.setRelativeSize.bind(this);
     this.setRotation = this.setRotation.bind(this);
     this.setPosition = this.setPosition.bind(this);
     this.update = this.update.bind(this);
     this.setClickPosition = this.setClickPosition.bind(this);
   }
 
-  _createClass(ShapeModel, [{
+  _createClass(LayerModel, [{
     key: "makeActive",
     value: function makeActive(layer) {
       this.active = true;
@@ -299,15 +303,41 @@ var ShapeModel = /*#__PURE__*/function () {
   }, {
     key: "setPosition",
     value: function setPosition(left, top) {
-      if (!this.clickEvent) return;
-      this.top = top - this.clickEvent.y;
-      this.left = left - this.clickEvent.x;
+      if (this.clickEvent) {
+        this.top = top - this.clickEvent.y;
+        this.left = left - this.clickEvent.x;
+      } else {
+        this.top = top;
+        this.left = left;
+      }
     }
   }, {
     key: "setSize",
     value: function setSize(width, height, origin) {
       this.width = width;
       this.height = height;
+    }
+  }, {
+    key: "setRelativePosition",
+    value: function setRelativePosition(parent) {
+      var top = this.relativeTop * parent.height + parent.top;
+      var left = this.relativeLeft * parent.width + parent.left;
+      this.setPosition(left, top);
+    }
+  }, {
+    key: "setRelativeProperties",
+    value: function setRelativeProperties(parent) {
+      this.relativeWidth = this.width / parent.width;
+      this.relativeHeight = this.height / parent.height;
+      this.relativeTop = (this.top - parent.top) / parent.height;
+      this.relativeLeft = (this.left - parent.left) / parent.width;
+    }
+  }, {
+    key: "setRelativeSize",
+    value: function setRelativeSize(parent) {
+      var width = this.relativeWidth * parent.width;
+      var height = this.relativeHeight * parent.height;
+      this.setSize(width, height);
     }
   }, {
     key: "setRotation",
@@ -325,14 +355,11 @@ var ShapeModel = /*#__PURE__*/function () {
     key: "setColor",
     value: function setColor(color) {
       this.backgroundColor = color;
-      this.element.style.backgroundColor = color;
-      this.fillColor = color;
     }
   }, {
     key: "update",
     value: function update() {
-      // this.center = new Point(this.width / 2, this.height / 2);
-      // this.transformOrigin = this.center;
+      this.center = new _Point.default(this.width / 2, this.height / 2);
       if (this.element) this.bounds = this.element.getBoundingClientRect();
     }
   }, {
@@ -345,12 +372,58 @@ var ShapeModel = /*#__PURE__*/function () {
     }
   }]);
 
-  return ShapeModel;
+  return LayerModel;
 }();
+
+var _default = LayerModel;
+exports.default = _default;
+},{"../utils/Point":"utils/Point.js"}],"models/shapeModel.js":[function(require,module,exports) {
+"use strict";
+
+Object.defineProperty(exports, "__esModule", {
+  value: true
+});
+exports.default = void 0;
+
+var _layerModel = _interopRequireDefault(require("./layerModel"));
+
+function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+
+function _typeof(obj) { "@babel/helpers - typeof"; if (typeof Symbol === "function" && typeof Symbol.iterator === "symbol") { _typeof = function _typeof(obj) { return typeof obj; }; } else { _typeof = function _typeof(obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; }; } return _typeof(obj); }
+
+function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+
+function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function"); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, writable: true, configurable: true } }); if (superClass) _setPrototypeOf(subClass, superClass); }
+
+function _setPrototypeOf(o, p) { _setPrototypeOf = Object.setPrototypeOf || function _setPrototypeOf(o, p) { o.__proto__ = p; return o; }; return _setPrototypeOf(o, p); }
+
+function _createSuper(Derived) { var hasNativeReflectConstruct = _isNativeReflectConstruct(); return function () { var Super = _getPrototypeOf(Derived), result; if (hasNativeReflectConstruct) { var NewTarget = _getPrototypeOf(this).constructor; result = Reflect.construct(Super, arguments, NewTarget); } else { result = Super.apply(this, arguments); } return _possibleConstructorReturn(this, result); }; }
+
+function _possibleConstructorReturn(self, call) { if (call && (_typeof(call) === "object" || typeof call === "function")) { return call; } return _assertThisInitialized(self); }
+
+function _assertThisInitialized(self) { if (self === void 0) { throw new ReferenceError("this hasn't been initialised - super() hasn't been called"); } return self; }
+
+function _isNativeReflectConstruct() { if (typeof Reflect === "undefined" || !Reflect.construct) return false; if (Reflect.construct.sham) return false; if (typeof Proxy === "function") return true; try { Date.prototype.toString.call(Reflect.construct(Date, [], function () {})); return true; } catch (e) { return false; } }
+
+function _getPrototypeOf(o) { _getPrototypeOf = Object.setPrototypeOf ? Object.getPrototypeOf : function _getPrototypeOf(o) { return o.__proto__ || Object.getPrototypeOf(o); }; return _getPrototypeOf(o); }
+
+var ShapeModel = /*#__PURE__*/function (_LayerModel) {
+  _inherits(ShapeModel, _LayerModel);
+
+  var _super = _createSuper(ShapeModel);
+
+  function ShapeModel(options) {
+    _classCallCheck(this, ShapeModel);
+
+    return _super.call(this, options);
+  }
+
+  return ShapeModel;
+}(_layerModel.default);
 
 var _default = ShapeModel;
 exports.default = _default;
-},{"../utils/Point":"utils/Point.js"}],"views/shapeView.js":[function(require,module,exports) {
+},{"./layerModel":"models/layerModel.js"}],"views/layerView.js":[function(require,module,exports) {
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -405,6 +478,7 @@ var ShapeView = /*#__PURE__*/function () {
       this.element.style.width = "".concat(shape.width, "px");
       this.element.style.height = "".concat(shape.height, "px");
       this.element.style.zIndex = "".concat(shape.zIndex);
+      this.element.style.backgroundColor = "".concat(shape.backgroundColor);
       this.element.style.transform = "rotate(".concat(shape.rotation, "deg)");
     }
   }]);
@@ -414,7 +488,7 @@ var ShapeView = /*#__PURE__*/function () {
 
 var _default = ShapeView;
 exports.default = _default;
-},{"../utils/Point":"utils/Point.js"}],"controllers/shapeController.js":[function(require,module,exports) {
+},{"../utils/Point":"utils/Point.js"}],"views/shapeView.js":[function(require,module,exports) {
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -422,9 +496,55 @@ Object.defineProperty(exports, "__esModule", {
 });
 exports.default = void 0;
 
-var _shapeModel = _interopRequireDefault(require("../models/shapeModel"));
+var _layerView = _interopRequireDefault(require("./layerView"));
 
-var _shapeView = _interopRequireDefault(require("../views/shapeView"));
+function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+
+function _typeof(obj) { "@babel/helpers - typeof"; if (typeof Symbol === "function" && typeof Symbol.iterator === "symbol") { _typeof = function _typeof(obj) { return typeof obj; }; } else { _typeof = function _typeof(obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; }; } return _typeof(obj); }
+
+function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+
+function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function"); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, writable: true, configurable: true } }); if (superClass) _setPrototypeOf(subClass, superClass); }
+
+function _setPrototypeOf(o, p) { _setPrototypeOf = Object.setPrototypeOf || function _setPrototypeOf(o, p) { o.__proto__ = p; return o; }; return _setPrototypeOf(o, p); }
+
+function _createSuper(Derived) { var hasNativeReflectConstruct = _isNativeReflectConstruct(); return function () { var Super = _getPrototypeOf(Derived), result; if (hasNativeReflectConstruct) { var NewTarget = _getPrototypeOf(this).constructor; result = Reflect.construct(Super, arguments, NewTarget); } else { result = Super.apply(this, arguments); } return _possibleConstructorReturn(this, result); }; }
+
+function _possibleConstructorReturn(self, call) { if (call && (_typeof(call) === "object" || typeof call === "function")) { return call; } return _assertThisInitialized(self); }
+
+function _assertThisInitialized(self) { if (self === void 0) { throw new ReferenceError("this hasn't been initialised - super() hasn't been called"); } return self; }
+
+function _isNativeReflectConstruct() { if (typeof Reflect === "undefined" || !Reflect.construct) return false; if (Reflect.construct.sham) return false; if (typeof Proxy === "function") return true; try { Date.prototype.toString.call(Reflect.construct(Date, [], function () {})); return true; } catch (e) { return false; } }
+
+function _getPrototypeOf(o) { _getPrototypeOf = Object.setPrototypeOf ? Object.getPrototypeOf : function _getPrototypeOf(o) { return o.__proto__ || Object.getPrototypeOf(o); }; return _getPrototypeOf(o); }
+
+var ShapeView = /*#__PURE__*/function (_LayerView) {
+  _inherits(ShapeView, _LayerView);
+
+  var _super = _createSuper(ShapeView);
+
+  function ShapeView(options) {
+    _classCallCheck(this, ShapeView);
+
+    return _super.call(this, options);
+  }
+
+  return ShapeView;
+}(_layerView.default);
+
+var _default = ShapeView;
+exports.default = _default;
+},{"./layerView":"views/layerView.js"}],"controllers/layerController.js":[function(require,module,exports) {
+"use strict";
+
+Object.defineProperty(exports, "__esModule", {
+  value: true
+});
+exports.default = void 0;
+
+var _layerModel = _interopRequireDefault(require("../models/layerModel"));
+
+var _layerView = _interopRequireDefault(require("../views/layerView"));
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
@@ -434,12 +554,12 @@ function _defineProperties(target, props) { for (var i = 0; i < props.length; i+
 
 function _createClass(Constructor, protoProps, staticProps) { if (protoProps) _defineProperties(Constructor.prototype, protoProps); if (staticProps) _defineProperties(Constructor, staticProps); return Constructor; }
 
-var Shape = /*#__PURE__*/function () {
-  function Shape(options) {
-    _classCallCheck(this, Shape);
+var Layer = /*#__PURE__*/function () {
+  function Layer(options) {
+    _classCallCheck(this, Layer);
 
-    this.model = new _shapeModel.default(options);
-    this.view = new _shapeView.default();
+    this.model = new _layerModel.default(options);
+    this.view = new _layerView.default();
     this.id = this.model.id; // Bindings
 
     this.add = this.add.bind(this);
@@ -449,16 +569,20 @@ var Shape = /*#__PURE__*/function () {
     this.setClickPosition = this.setClickPosition.bind(this);
     this.setColor = this.setColor.bind(this);
     this.setPosition = this.setPosition.bind(this);
+    this.setRelativePosition = this.setRelativePosition.bind(this);
+    this.setRelativeProperties = this.setRelativeProperties.bind(this);
+    this.setRelativeSize = this.setRelativeSize.bind(this);
     this.setRotation = this.setRotation.bind(this);
     this.setSize = this.setSize.bind(this);
     this.setTransformOrigin = this.setTransformOrigin.bind(this);
     this.update = this.update.bind(this);
   }
 
-  _createClass(Shape, [{
+  _createClass(Layer, [{
     key: "add",
     value: function add(parent) {
       this.view.add(parent, this.model);
+      this.model.setBoundsFromElement(this.view.element);
       return this;
     }
   }, {
@@ -490,7 +614,7 @@ var Shape = /*#__PURE__*/function () {
   }, {
     key: "setColor",
     value: function setColor(color) {
-      this.setColor(color);
+      this.model.setColor(color);
       this.update();
     }
   }, {
@@ -498,6 +622,21 @@ var Shape = /*#__PURE__*/function () {
     value: function setPosition(left, top) {
       this.model.setPosition(left, top);
       this.update();
+    }
+  }, {
+    key: "setRelativePosition",
+    value: function setRelativePosition(parent) {
+      this.model.setRelativePosition(parent);
+    }
+  }, {
+    key: "setRelativeProperties",
+    value: function setRelativeProperties(parent) {
+      this.model.setRelativeProperties(parent);
+    }
+  }, {
+    key: "setRelativeSize",
+    value: function setRelativeSize(parent) {
+      this.model.setRelativeSize(parent);
     }
   }, {
     key: "setRotation",
@@ -527,12 +666,412 @@ var Shape = /*#__PURE__*/function () {
     }
   }]);
 
-  return Shape;
+  return Layer;
 }();
+
+var _default = Layer;
+exports.default = _default;
+},{"../models/layerModel":"models/layerModel.js","../views/layerView":"views/layerView.js"}],"controllers/shapeController.js":[function(require,module,exports) {
+"use strict";
+
+Object.defineProperty(exports, "__esModule", {
+  value: true
+});
+exports.default = void 0;
+
+var _shapeModel = _interopRequireDefault(require("../models/shapeModel"));
+
+var _shapeView = _interopRequireDefault(require("../views/shapeView"));
+
+var _layerController = _interopRequireDefault(require("./layerController"));
+
+function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+
+function _typeof(obj) { "@babel/helpers - typeof"; if (typeof Symbol === "function" && typeof Symbol.iterator === "symbol") { _typeof = function _typeof(obj) { return typeof obj; }; } else { _typeof = function _typeof(obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; }; } return _typeof(obj); }
+
+function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+
+function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function"); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, writable: true, configurable: true } }); if (superClass) _setPrototypeOf(subClass, superClass); }
+
+function _setPrototypeOf(o, p) { _setPrototypeOf = Object.setPrototypeOf || function _setPrototypeOf(o, p) { o.__proto__ = p; return o; }; return _setPrototypeOf(o, p); }
+
+function _createSuper(Derived) { var hasNativeReflectConstruct = _isNativeReflectConstruct(); return function () { var Super = _getPrototypeOf(Derived), result; if (hasNativeReflectConstruct) { var NewTarget = _getPrototypeOf(this).constructor; result = Reflect.construct(Super, arguments, NewTarget); } else { result = Super.apply(this, arguments); } return _possibleConstructorReturn(this, result); }; }
+
+function _possibleConstructorReturn(self, call) { if (call && (_typeof(call) === "object" || typeof call === "function")) { return call; } return _assertThisInitialized(self); }
+
+function _assertThisInitialized(self) { if (self === void 0) { throw new ReferenceError("this hasn't been initialised - super() hasn't been called"); } return self; }
+
+function _isNativeReflectConstruct() { if (typeof Reflect === "undefined" || !Reflect.construct) return false; if (Reflect.construct.sham) return false; if (typeof Proxy === "function") return true; try { Date.prototype.toString.call(Reflect.construct(Date, [], function () {})); return true; } catch (e) { return false; } }
+
+function _getPrototypeOf(o) { _getPrototypeOf = Object.setPrototypeOf ? Object.getPrototypeOf : function _getPrototypeOf(o) { return o.__proto__ || Object.getPrototypeOf(o); }; return _getPrototypeOf(o); }
+
+var Shape = /*#__PURE__*/function (_LayerController) {
+  _inherits(Shape, _LayerController);
+
+  var _super = _createSuper(Shape);
+
+  function Shape(options) {
+    var _this;
+
+    _classCallCheck(this, Shape);
+
+    _this = _super.call(this, options);
+    _this.type = 'shape';
+    return _this;
+  }
+
+  return Shape;
+}(_layerController.default);
 
 var _default = Shape;
 exports.default = _default;
-},{"../models/shapeModel":"models/shapeModel.js","../views/shapeView":"views/shapeView.js"}],"models/layersModel.js":[function(require,module,exports) {
+},{"../models/shapeModel":"models/shapeModel.js","../views/shapeView":"views/shapeView.js","./layerController":"controllers/layerController.js"}],"models/groupModel.js":[function(require,module,exports) {
+"use strict";
+
+Object.defineProperty(exports, "__esModule", {
+  value: true
+});
+exports.default = void 0;
+
+var _Point = _interopRequireDefault(require("../utils/Point"));
+
+var _layerModel = _interopRequireDefault(require("./layerModel"));
+
+function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+
+function _typeof(obj) { "@babel/helpers - typeof"; if (typeof Symbol === "function" && typeof Symbol.iterator === "symbol") { _typeof = function _typeof(obj) { return typeof obj; }; } else { _typeof = function _typeof(obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; }; } return _typeof(obj); }
+
+function _toConsumableArray(arr) { return _arrayWithoutHoles(arr) || _iterableToArray(arr) || _unsupportedIterableToArray(arr) || _nonIterableSpread(); }
+
+function _nonIterableSpread() { throw new TypeError("Invalid attempt to spread non-iterable instance.\nIn order to be iterable, non-array objects must have a [Symbol.iterator]() method."); }
+
+function _unsupportedIterableToArray(o, minLen) { if (!o) return; if (typeof o === "string") return _arrayLikeToArray(o, minLen); var n = Object.prototype.toString.call(o).slice(8, -1); if (n === "Object" && o.constructor) n = o.constructor.name; if (n === "Map" || n === "Set") return Array.from(o); if (n === "Arguments" || /^(?:Ui|I)nt(?:8|16|32)(?:Clamped)?Array$/.test(n)) return _arrayLikeToArray(o, minLen); }
+
+function _iterableToArray(iter) { if (typeof Symbol !== "undefined" && Symbol.iterator in Object(iter)) return Array.from(iter); }
+
+function _arrayWithoutHoles(arr) { if (Array.isArray(arr)) return _arrayLikeToArray(arr); }
+
+function _arrayLikeToArray(arr, len) { if (len == null || len > arr.length) len = arr.length; for (var i = 0, arr2 = new Array(len); i < len; i++) { arr2[i] = arr[i]; } return arr2; }
+
+function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+
+function _defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } }
+
+function _createClass(Constructor, protoProps, staticProps) { if (protoProps) _defineProperties(Constructor.prototype, protoProps); if (staticProps) _defineProperties(Constructor, staticProps); return Constructor; }
+
+function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function"); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, writable: true, configurable: true } }); if (superClass) _setPrototypeOf(subClass, superClass); }
+
+function _setPrototypeOf(o, p) { _setPrototypeOf = Object.setPrototypeOf || function _setPrototypeOf(o, p) { o.__proto__ = p; return o; }; return _setPrototypeOf(o, p); }
+
+function _createSuper(Derived) { var hasNativeReflectConstruct = _isNativeReflectConstruct(); return function () { var Super = _getPrototypeOf(Derived), result; if (hasNativeReflectConstruct) { var NewTarget = _getPrototypeOf(this).constructor; result = Reflect.construct(Super, arguments, NewTarget); } else { result = Super.apply(this, arguments); } return _possibleConstructorReturn(this, result); }; }
+
+function _possibleConstructorReturn(self, call) { if (call && (_typeof(call) === "object" || typeof call === "function")) { return call; } return _assertThisInitialized(self); }
+
+function _assertThisInitialized(self) { if (self === void 0) { throw new ReferenceError("this hasn't been initialised - super() hasn't been called"); } return self; }
+
+function _isNativeReflectConstruct() { if (typeof Reflect === "undefined" || !Reflect.construct) return false; if (Reflect.construct.sham) return false; if (typeof Proxy === "function") return true; try { Date.prototype.toString.call(Reflect.construct(Date, [], function () {})); return true; } catch (e) { return false; } }
+
+function _getPrototypeOf(o) { _getPrototypeOf = Object.setPrototypeOf ? Object.getPrototypeOf : function _getPrototypeOf(o) { return o.__proto__ || Object.getPrototypeOf(o); }; return _getPrototypeOf(o); }
+
+var GroupModel = /*#__PURE__*/function (_LayerModel) {
+  _inherits(GroupModel, _LayerModel);
+
+  var _super = _createSuper(GroupModel);
+
+  function GroupModel(options) {
+    var _this;
+
+    _classCallCheck(this, GroupModel);
+
+    _this = _super.call(this, options);
+    _this.type = 'group';
+    _this.backgroundColor = 'none';
+    _this.layers = []; // Bindings ///////
+
+    _this.add = _this.add.bind(_assertThisInitialized(_this));
+    _this.updateGroupBounds = _this.updateGroupBounds.bind(_assertThisInitialized(_this));
+    _this.setLayerPositions = _this.setLayerPositions.bind(_assertThisInitialized(_this));
+    _this.setLayerSizes = _this.setLayerSizes.bind(_assertThisInitialized(_this));
+    _this.setRelativeProperties = _this.setRelativeProperties.bind(_assertThisInitialized(_this));
+    return _this;
+  }
+
+  _createClass(GroupModel, [{
+    key: "add",
+    value: function add(layers) {
+      var _this$layers;
+
+      (_this$layers = this.layers).push.apply(_this$layers, _toConsumableArray(layers));
+
+      this.updateGroupBounds();
+      return this.layers;
+    }
+  }, {
+    key: "forAllLayers",
+    value: function forAllLayers(callback) {
+      // Loop through layers
+      this.layers.forEach(function (layer, i) {
+        callback(layer, i);
+      });
+    }
+  }, {
+    key: "updateGroupBounds",
+    value: function updateGroupBounds() {
+      var width, height, top, left; // Loop through layers
+
+      this.layers.forEach(function (layer, i) {
+        var layerProps = layer.getProperties();
+
+        if (i === 0) {
+          width = layerProps.width;
+          height = layerProps.height;
+          top = layerProps.top;
+          left = layerProps.left;
+        } else {
+          if (layerProps.top < top) {
+            height += top - layerProps.top;
+            top = layerProps.top;
+          }
+
+          if (layerProps.left < left) {
+            width = width + left - layerProps.left;
+            left = layerProps.left;
+          }
+
+          if (layerProps.left + layerProps.width > left + width) {
+            width = width + layerProps.width - (width + left - layerProps.left);
+          }
+
+          if (layerProps.top + layerProps.height > top + height) {
+            height = height + layerProps.height - (height + top - layerProps.top);
+          }
+        }
+      });
+      this.setSize(width, height);
+      this.setPosition(left, top);
+      this.center = new _Point.default(this.width / 2, this.height / 2);
+      if (this.element) this.bounds = this.element.getBoundingClientRect();
+    }
+  }, {
+    key: "setRelativeProperties",
+    value: function setRelativeProperties() {
+      var _this2 = this;
+
+      // Loop through layers
+      this.layers.forEach(function (layer, i) {
+        layer.setRelativeProperties(_this2);
+      });
+    }
+  }, {
+    key: "setLayerSizes",
+    value: function setLayerSizes() {
+      var _this3 = this;
+
+      // Loop through layers
+      this.layers.forEach(function (layer, i) {
+        layer.setRelativeSize(_this3);
+      });
+    }
+  }, {
+    key: "setLayerPositions",
+    value: function setLayerPositions() {
+      var _this4 = this;
+
+      // Loop through layers
+      this.layers.forEach(function (layer, i) {
+        layer.setRelativePosition(_this4);
+      });
+    }
+  }, {
+    key: "updateLayers",
+    value: function updateLayers() {
+      var _this5 = this;
+
+      // Loop through layers
+      this.layers.forEach(function (layer, i) {
+        layer.update(_this5);
+      });
+    }
+  }]);
+
+  return GroupModel;
+}(_layerModel.default);
+
+var _default = GroupModel;
+exports.default = _default;
+},{"../utils/Point":"utils/Point.js","./layerModel":"models/layerModel.js"}],"views/groupView.js":[function(require,module,exports) {
+"use strict";
+
+Object.defineProperty(exports, "__esModule", {
+  value: true
+});
+exports.default = void 0;
+
+var _layerView = _interopRequireDefault(require("./layerView"));
+
+function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+
+function _typeof(obj) { "@babel/helpers - typeof"; if (typeof Symbol === "function" && typeof Symbol.iterator === "symbol") { _typeof = function _typeof(obj) { return typeof obj; }; } else { _typeof = function _typeof(obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; }; } return _typeof(obj); }
+
+function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+
+function _defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } }
+
+function _createClass(Constructor, protoProps, staticProps) { if (protoProps) _defineProperties(Constructor.prototype, protoProps); if (staticProps) _defineProperties(Constructor, staticProps); return Constructor; }
+
+function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function"); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, writable: true, configurable: true } }); if (superClass) _setPrototypeOf(subClass, superClass); }
+
+function _setPrototypeOf(o, p) { _setPrototypeOf = Object.setPrototypeOf || function _setPrototypeOf(o, p) { o.__proto__ = p; return o; }; return _setPrototypeOf(o, p); }
+
+function _createSuper(Derived) { var hasNativeReflectConstruct = _isNativeReflectConstruct(); return function () { var Super = _getPrototypeOf(Derived), result; if (hasNativeReflectConstruct) { var NewTarget = _getPrototypeOf(this).constructor; result = Reflect.construct(Super, arguments, NewTarget); } else { result = Super.apply(this, arguments); } return _possibleConstructorReturn(this, result); }; }
+
+function _possibleConstructorReturn(self, call) { if (call && (_typeof(call) === "object" || typeof call === "function")) { return call; } return _assertThisInitialized(self); }
+
+function _assertThisInitialized(self) { if (self === void 0) { throw new ReferenceError("this hasn't been initialised - super() hasn't been called"); } return self; }
+
+function _isNativeReflectConstruct() { if (typeof Reflect === "undefined" || !Reflect.construct) return false; if (Reflect.construct.sham) return false; if (typeof Proxy === "function") return true; try { Date.prototype.toString.call(Reflect.construct(Date, [], function () {})); return true; } catch (e) { return false; } }
+
+function _getPrototypeOf(o) { _getPrototypeOf = Object.setPrototypeOf ? Object.getPrototypeOf : function _getPrototypeOf(o) { return o.__proto__ || Object.getPrototypeOf(o); }; return _getPrototypeOf(o); }
+
+var GroupView = /*#__PURE__*/function (_LayerView) {
+  _inherits(GroupView, _LayerView);
+
+  var _super = _createSuper(GroupView);
+
+  function GroupView(options) {
+    var _this;
+
+    _classCallCheck(this, GroupView);
+
+    _this = _super.call(this, options); // Bindings ///////
+
+    _this.add = _this.add.bind(_assertThisInitialized(_this));
+    return _this;
+  }
+
+  _createClass(GroupView, [{
+    key: "add",
+    value: function add(parent, groupObj) {
+      this.parent = parent;
+      var element = "<".concat(groupObj.tag, " class=\"shape\" id=\"").concat(groupObj.id, "\" style=\"top:").concat(groupObj.top, "px; left:").concat(groupObj.left, "px; width:").concat(groupObj.width, "px; height:").concat(groupObj.height, "px; background:").concat(groupObj.backgroundColor, "; z-index:").concat(groupObj.zIndex, "\"></").concat(groupObj.tag, ">");
+      this.parent.insertAdjacentHTML('beforeend', element);
+      this.element = this.parent.lastElementChild;
+      console.log(this);
+      return this;
+    }
+  }, {
+    key: "remove",
+    value: function remove() {
+      console.log(this.element);
+      this.element.parentNode.removeChild(this.element);
+      return null;
+    }
+  }]);
+
+  return GroupView;
+}(_layerView.default);
+
+var _default = GroupView;
+exports.default = _default;
+},{"./layerView":"views/layerView.js"}],"controllers/groupController.js":[function(require,module,exports) {
+"use strict";
+
+Object.defineProperty(exports, "__esModule", {
+  value: true
+});
+exports.default = void 0;
+
+var _groupModel = _interopRequireDefault(require("../models/groupModel"));
+
+var _groupView = _interopRequireDefault(require("../views/groupView"));
+
+var _layerController = _interopRequireDefault(require("./layerController"));
+
+function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+
+function _typeof(obj) { "@babel/helpers - typeof"; if (typeof Symbol === "function" && typeof Symbol.iterator === "symbol") { _typeof = function _typeof(obj) { return typeof obj; }; } else { _typeof = function _typeof(obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; }; } return _typeof(obj); }
+
+function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+
+function _defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } }
+
+function _createClass(Constructor, protoProps, staticProps) { if (protoProps) _defineProperties(Constructor.prototype, protoProps); if (staticProps) _defineProperties(Constructor, staticProps); return Constructor; }
+
+function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function"); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, writable: true, configurable: true } }); if (superClass) _setPrototypeOf(subClass, superClass); }
+
+function _setPrototypeOf(o, p) { _setPrototypeOf = Object.setPrototypeOf || function _setPrototypeOf(o, p) { o.__proto__ = p; return o; }; return _setPrototypeOf(o, p); }
+
+function _createSuper(Derived) { var hasNativeReflectConstruct = _isNativeReflectConstruct(); return function () { var Super = _getPrototypeOf(Derived), result; if (hasNativeReflectConstruct) { var NewTarget = _getPrototypeOf(this).constructor; result = Reflect.construct(Super, arguments, NewTarget); } else { result = Super.apply(this, arguments); } return _possibleConstructorReturn(this, result); }; }
+
+function _possibleConstructorReturn(self, call) { if (call && (_typeof(call) === "object" || typeof call === "function")) { return call; } return _assertThisInitialized(self); }
+
+function _assertThisInitialized(self) { if (self === void 0) { throw new ReferenceError("this hasn't been initialised - super() hasn't been called"); } return self; }
+
+function _isNativeReflectConstruct() { if (typeof Reflect === "undefined" || !Reflect.construct) return false; if (Reflect.construct.sham) return false; if (typeof Proxy === "function") return true; try { Date.prototype.toString.call(Reflect.construct(Date, [], function () {})); return true; } catch (e) { return false; } }
+
+function _getPrototypeOf(o) { _getPrototypeOf = Object.setPrototypeOf ? Object.getPrototypeOf : function _getPrototypeOf(o) { return o.__proto__ || Object.getPrototypeOf(o); }; return _getPrototypeOf(o); }
+
+var Group = /*#__PURE__*/function (_LayerController) {
+  _inherits(Group, _LayerController);
+
+  var _super = _createSuper(Group);
+
+  function Group(options) {
+    var _this;
+
+    _classCallCheck(this, Group);
+
+    _this = _super.call(this, options);
+    _this.model = new _groupModel.default(options);
+    _this.view = new _groupView.default(options);
+    _this.type = 'group'; // Bindings
+
+    _this.add = _this.add.bind(_assertThisInitialized(_this));
+    _this.setPosition = _this.setPosition.bind(_assertThisInitialized(_this));
+    return _this;
+  }
+
+  _createClass(Group, [{
+    key: "add",
+    value: function add(layersArray, parent) {
+      this.model.add(layersArray);
+
+      if (parent) {
+        this.view.add(parent, this.model);
+        this.model.setBoundsFromElement(this.view.element);
+        this.setRelativeProperties();
+      }
+    }
+  }, {
+    key: "setPosition",
+    value: function setPosition(left, top) {
+      this.model.setPosition(left, top);
+      this.update();
+      this.model.setLayerPositions();
+      this.updateLayers();
+    }
+  }, {
+    key: "setSize",
+    value: function setSize(width, height, origin) {
+      this.model.setSize(width, height, origin);
+      this.update();
+      this.model.setLayerSizes();
+      this.model.setLayerPositions();
+      this.updateLayers();
+    }
+  }, {
+    key: "updateLayers",
+    value: function updateLayers() {
+      this.model.updateLayers();
+    }
+  }]);
+
+  return Group;
+}(_layerController.default);
+
+var _default = Group;
+exports.default = _default;
+},{"../models/groupModel":"models/groupModel.js","../views/groupView":"views/groupView.js","./layerController":"controllers/layerController.js"}],"models/layersModel.js":[function(require,module,exports) {
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -580,13 +1119,12 @@ var Layers = /*#__PURE__*/function () {
     key: "duplicate",
     value: function duplicate(layerObject, newId) {
       var layer = this.getLayerById(layerObject.id);
-      var newLayer = new _shapeController.default(layer);
+      var newLayer = new _shapeController.default(layer.model);
       newLayer.id = newId;
+      newLayer.model.id = newId;
       newLayer.zIndex = newId;
-      newLayer.name = newLayer.name + ' copy';
-      newLayer.add(layer.parent);
+      newLayer.model.name = newLayer.model.name + ' copy';
       this.add(newLayer);
-      newLayer.update();
       return newLayer;
     }
   }, {
@@ -622,8 +1160,8 @@ var Layers = /*#__PURE__*/function () {
 
       if (index !== this.layers.length - 1) {
         // Switch z-index values
-        this.layers[index].zIndex = index + 1;
-        this.layers[index + 1].zIndex = index; // Switch values in array
+        this.layers[index].model.zIndex = index + 1;
+        this.layers[index + 1].model.zIndex = index; // Switch values in array
 
         var _ref = [this.layers[index], this.layers[index + 1]];
         this.layers[index + 1] = _ref[0];
@@ -640,8 +1178,8 @@ var Layers = /*#__PURE__*/function () {
 
       if (index !== 0) {
         // Switch z-index values
-        this.layers[index - 1].zIndex = index;
-        this.layers[index].zIndex = index - 1; // Switch values in array
+        this.layers[index - 1].model.zIndex = index;
+        this.layers[index].model.zIndex = index - 1; // Switch values in array
 
         var _ref2 = [this.layers[index], this.layers[index - 1]];
         this.layers[index - 1] = _ref2[0];
@@ -785,7 +1323,7 @@ var LayersPanelView = /*#__PURE__*/function () {
       if (layer.active) className = 'active';
       if (!options) options = {};
       var html = "<li id=\"for-".concat(options.targetId, "\" class=\"").concat(className, "\" draggable=\"true\">").concat(layer.name, "</li>");
-      this.element.insertAdjacentHTML('beforeend', html);
+      this.element.insertAdjacentHTML('afterbegin', html);
       this.recalculateChildren();
     }
   }, {
@@ -953,7 +1491,7 @@ var LayersPanelView = /*#__PURE__*/function () {
     key: "remove",
     value: function remove(layer) {
       var layerEl = this.getLayerElementById(layer.id);
-      layerEl.parentNode.removeChild(layerEl);
+      if (layerEl) layerEl.parentNode.removeChild(layerEl);
     }
   }, {
     key: "removeDivider",
@@ -974,6 +1512,18 @@ var LayersPanelView = /*#__PURE__*/function () {
       children.forEach(function (child) {
         return child.classList.remove('active');
       });
+    }
+  }, {
+    key: "moveLayerForward",
+    value: function moveLayerForward(layer) {
+      var thisLayer = this.getLayerElementById(layer.id);
+      thisLayer.previousSibling.insertAdjacentElement('beforebegin', thisLayer);
+    }
+  }, {
+    key: "moveLayerBackward",
+    value: function moveLayerBackward(layer) {
+      var thisLayer = this.getLayerElementById(layer.id);
+      thisLayer.nextSibling.insertAdjacentElement('afterend', thisLayer);
     }
   }, {
     key: "setHoverPosition",
@@ -1047,12 +1597,17 @@ var LayersPanel = /*#__PURE__*/function () {
       var options = {
         targetId: layer.model.id
       };
-      this.view.addLayer(layer.model, options);
+      if (layer.model.visible) this.view.addLayer(layer.model, options);
     }
   }, {
     key: "duplicate",
-    value: function duplicate(layer) {
-      this.model.duplicate(layer.model);
+    value: function duplicate(layer, id) {
+      var newLayer = this.model.duplicate(layer.model, id);
+      var options = {
+        targetId: layer.model.id
+      };
+      this.add(newLayer, options);
+      return newLayer;
     }
   }, {
     key: "getLayerById",
@@ -1071,10 +1626,29 @@ var LayersPanel = /*#__PURE__*/function () {
     }
   }, {
     key: "moveLayerForward",
-    value: function moveLayerForward(layer) {}
+    value: function moveLayerForward(layer) {
+      this.model.moveLayerForward(layer);
+      this.view.moveLayerForward(layer);
+    }
   }, {
     key: "moveLayerBackward",
-    value: function moveLayerBackward(layer) {}
+    value: function moveLayerBackward(layer) {
+      this.model.moveLayerBackward(layer);
+      this.view.moveLayerBackward(layer);
+    }
+  }, {
+    key: "moveLayerToFront",
+    value: function moveLayerToFront(layer) {
+      console.log(layer);
+    }
+  }, {
+    key: "moveLayerToBack",
+    value: function moveLayerToBack(layer) {
+      console.log(layer);
+    }
+  }, {
+    key: "moveLayerToPosition",
+    value: function moveLayerToPosition(layer) {}
   }, {
     key: "remove",
     value: function remove(layer) {
@@ -1088,7 +1662,160 @@ var LayersPanel = /*#__PURE__*/function () {
 
 var _default = LayersPanel;
 exports.default = _default;
-},{"../models/layersModel":"models/layersModel.js","../views/layersView":"views/layersView.js"}],"Canvas.js":[function(require,module,exports) {
+},{"../models/layersModel":"models/layersModel.js","../views/layersView":"views/layersView.js"}],"views/layerDetailsView.js":[function(require,module,exports) {
+"use strict";
+
+Object.defineProperty(exports, "__esModule", {
+  value: true
+});
+exports.default = void 0;
+
+function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+
+function _defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } }
+
+function _createClass(Constructor, protoProps, staticProps) { if (protoProps) _defineProperties(Constructor.prototype, protoProps); if (staticProps) _defineProperties(Constructor, staticProps); return Constructor; }
+
+var LayerDetailsView = /*#__PURE__*/function () {
+  function LayerDetailsView() {
+    _classCallCheck(this, LayerDetailsView);
+
+    this.layerDetailsElement = document.getElementById('layer-details-panel');
+    this.elementType = document.getElementById('layer-detail_elementType');
+    this.elementX = document.getElementById('layer-detail_elementX');
+    this.elementY = document.getElementById('layer-detail_elementY');
+    this.elementRotation = document.getElementById('layer-detail_elementRotation');
+    this.elementWidth = document.getElementById('layer-detail_elementWidth');
+    this.elementHeight = document.getElementById('layer-detail_elementHeight');
+    this.elementFillType = document.getElementById('layer-detail_elementFillType'); // Bindings
+
+    this.getValue = this.getValue.bind(this);
+    this.setValue = this.setValue.bind(this);
+  }
+
+  _createClass(LayerDetailsView, [{
+    key: "getValue",
+    value: function getValue(element) {
+      var value = this[element].value;
+      if (!value) value = 0;
+
+      if (this[element].classList.contains('select')) {
+        value = this[element].querySelector('.select-box-text').innerText;
+        value = value.toLowerCase();
+      }
+
+      return value;
+    }
+  }, {
+    key: "setValue",
+    value: function setValue(element, value) {
+      if (!value) value = '';
+
+      if (this[element].classList.contains('select')) {
+        if (value) value = capitalize(value);
+        this[element].querySelector('.select-box-text').innerText = value;
+      }
+
+      this[element].value = value;
+    }
+  }]);
+
+  return LayerDetailsView;
+}();
+
+var _default = LayerDetailsView;
+exports.default = _default;
+
+function capitalize(string) {
+  var newString = string.split('');
+  newString[0] = newString[0].toUpperCase();
+  return newString.join('');
+}
+},{}],"controllers/layerDetailsController.js":[function(require,module,exports) {
+"use strict";
+
+Object.defineProperty(exports, "__esModule", {
+  value: true
+});
+exports.default = void 0;
+
+var _layerDetailsView = _interopRequireDefault(require("../views/layerDetailsView"));
+
+function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+
+function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+
+function _defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } }
+
+function _createClass(Constructor, protoProps, staticProps) { if (protoProps) _defineProperties(Constructor.prototype, protoProps); if (staticProps) _defineProperties(Constructor, staticProps); return Constructor; }
+
+var LayerDetailsController = /*#__PURE__*/function () {
+  function LayerDetailsController(layer) {
+    _classCallCheck(this, LayerDetailsController);
+
+    this.view = new _layerDetailsView.default();
+
+    if (layer) {
+      this.model = layer.model;
+      this.layer = layer;
+    } // Bindings
+
+
+    this.setActiveLayer = this.setActiveLayer.bind(this);
+    this.setAll = this.setAll.bind(this);
+    this.updateAll = this.updateAll.bind(this); // Event Listeners
+
+    this.view.layerDetailsElement.addEventListener('input', this.setAll);
+  }
+
+  _createClass(LayerDetailsController, [{
+    key: "getNumberValue",
+    value: function getNumberValue(element) {
+      return parseInt(this.view.getValue(element));
+    }
+  }, {
+    key: "setActiveLayer",
+    value: function setActiveLayer(layer) {
+      if (layer) {
+        this.model = layer.model;
+        this.layer = layer;
+      } else {
+        this.layer = undefined;
+        this.model = undefined;
+      }
+    }
+  }, {
+    key: "setAll",
+    value: function setAll() {
+      var data = this.model;
+      data.left = this.getNumberValue('elementX');
+      data.top = this.getNumberValue('elementY');
+      data.type = this.view.getValue('elementType');
+      data.rotation = this.getNumberValue('elementRotation');
+      data.width = this.getNumberValue('elementWidth');
+      data.height = this.getNumberValue('elementHeight');
+      if (this.layer) this.layer.update();
+    }
+  }, {
+    key: "updateAll",
+    value: function updateAll() {
+      var data;
+      !this.model ? data = {} : data = this.model;
+      this.view.setValue('elementX', data.left);
+      this.view.setValue('elementY', data.top);
+      this.view.setValue('elementType', data.type);
+      this.view.setValue('elementRotation', data.rotation);
+      this.view.setValue('elementWidth', data.width);
+      this.view.setValue('elementHeight', data.height); // this.view.setValue('elementFillType', 'Solid Color');
+    }
+  }]);
+
+  return LayerDetailsController;
+}();
+
+var _default = LayerDetailsController;
+exports.default = _default;
+},{"../views/layerDetailsView":"views/layerDetailsView.js"}],"Canvas.js":[function(require,module,exports) {
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -1100,7 +1827,11 @@ var _TransformHelper = _interopRequireDefault(require("./TransformHelper"));
 
 var _shapeController = _interopRequireDefault(require("./controllers/shapeController"));
 
+var _groupController = _interopRequireDefault(require("./controllers/groupController"));
+
 var _layersController = _interopRequireDefault(require("./controllers/layersController"));
+
+var _layerDetailsController = _interopRequireDefault(require("./controllers/layerDetailsController"));
 
 var _Point = _interopRequireDefault(require("./utils/Point"));
 
@@ -1122,15 +1853,17 @@ var Canvas = /*#__PURE__*/function () {
     this.drawStart = {};
     this.drawEnd = {};
     this.isMouseDown = false;
-    this.shape = 'ellipse';
+    this.shape = 'rectangle';
     this.activeLayer = undefined;
     this.mode = 'draw';
     this.editMode = 'select';
     this.layers = new _layersController.default();
+    this.layerDetails = new _layerDetailsController.default();
     this.transformHelper = new _TransformHelper.default();
     this.updates = {};
     this.modifiers = {
-      altDown: false
+      altDown: false,
+      shiftDown: false
     }; // BINDINGS ///////////////////////
 
     this.keydown = this.keydown.bind(this);
@@ -1139,7 +1872,9 @@ var Canvas = /*#__PURE__*/function () {
     this.mousedown = this.mousedown.bind(this);
     this.mouseup = this.mouseup.bind(this);
     this.mousemove = this.mousemove.bind(this);
+    this.makeGroup = this.makeGroup.bind(this);
     this.drawShape = this.drawShape.bind(this);
+    this.updateLayerDetails = this.updateLayerDetails.bind(this);
     canvas.addEventListener('mousedown', this.mousedown);
     canvas.addEventListener('mouseup', this.mouseup);
     canvas.addEventListener('mousemove', this.mousemove); // Key bindings
@@ -1160,10 +1895,37 @@ var Canvas = /*#__PURE__*/function () {
       this.id++;
     }
   }, {
+    key: "makeGroup",
+    value: function makeGroup(layers, parent) {
+      var visible = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : true;
+      var isVisible = visible;
+      var options = {
+        id: this.id,
+        visible: isVisible
+      };
+      var group = new _groupController.default(options);
+      if (layers) group.add(layers, parent);
+      this.layers.add(group);
+      this.id++;
+      return group;
+    }
+  }, {
+    key: "removeGroup",
+    value: function removeGroup(group) {
+      this.layers.remove(group);
+      this.makeActiveLayer();
+    }
+  }, {
     key: "keydown",
     value: function keydown(event) {
       switch (event.keyCode) {
+        // shift
+        case 16:
+          this.modifiers.shiftDown = true;
+          this.editMode = 'grouping';
+          break;
         // alt
+
         case 18:
           this.modifiers.altDown = true;
           break;
@@ -1174,21 +1936,26 @@ var Canvas = /*#__PURE__*/function () {
           this.activeLayer.remove();
           this.activeLayer = undefined;
           this.transformHelper.remove();
+          this.updateLayerDetails();
           break;
         // up
 
         case 38:
           this.layers.moveLayerForward(this.activeLayer);
+          this.activeLayer.update();
           break;
+        // down
 
         case 40:
           this.layers.moveLayerBackward(this.activeLayer);
+          this.activeLayer.update();
           break;
 
         case 68:
           var newLayer = this.layers.duplicate(this.activeLayer, this.id);
-          this.drawShape(this.layers.model);
+          newLayer.add(this.element);
           this.makeActiveLayer(newLayer);
+          this.transformHelper.set(newLayer);
           this.id++;
           break;
 
@@ -1205,6 +1972,12 @@ var Canvas = /*#__PURE__*/function () {
           this.modifiers.altDown = false;
           this.editMode = 'select';
           break;
+        // shift
+
+        case 16:
+          this.modifiers.shiftDown = false;
+          this.editMode = 'select';
+          break;
 
         default:
           break;
@@ -1219,11 +1992,13 @@ var Canvas = /*#__PURE__*/function () {
         this.layers.makeAllInactive();
       }
 
+      console.log(object);
       this.activeLayer = object;
       this.activeLayer.makeActive();
       this.transformHelper.set(object); // Make the layer in layers panel active
 
       this.layers.makeActive(this.activeLayer);
+      this.updateLayerDetails();
     }
   }, {
     key: "removeActiveLayer",
@@ -1252,7 +2027,7 @@ var Canvas = /*#__PURE__*/function () {
 
       if (this.mode === 'draw') this.drawShape(shapeOptions);
 
-      if (this.mode === 'edit') {
+      if (this.mode === 'edit' && this.editMode !== 'grouping') {
         // Get the target layer
         var target = this.layers.getLayerById(event.target.id); // If target layer exists and it isn't the helper make it active
 
@@ -1278,6 +2053,24 @@ var Canvas = /*#__PURE__*/function () {
           this.drawStartAngle = rotationAngle(this.transformOrigin.x, this.transformOrigin.y, this.mousePosition.x, this.mousePosition.y);
           this.drawStartShapeRotation = this.activeLayer.rotation;
         }
+      }
+
+      if (this.mode === 'edit' && this.editMode === 'grouping') {
+        // Get the target layer
+        var _target = this.layers.getLayerById(event.target.id); // Group the activelayer and target layer
+
+
+        var group = this.makeGroup([this.activeLayer, _target], this.element, false); // If target layer exists and it isn't the helper make it active
+
+        if (_target && event.target.id !== 'transform-helper-box') this.makeActiveLayer(group); // Attach the helper to the active layer or remove if it doesn't exist
+
+        if (this.activeLayer) {
+          this.transformHelper.set(this.activeLayer);
+        } else {
+          this.transformHelper.remove();
+        }
+
+        console.log(this);
       }
 
       if (this.mode === 'edit' && this.activeLayer && event.target.id === 'transform-helper-box') {
@@ -1310,18 +2103,22 @@ var Canvas = /*#__PURE__*/function () {
 
       if (this.isMouseDown && this.mode === 'draw') {
         this.resizeLayer(this.activeLayer);
+        this.updateLayerDetails();
       }
 
       if (this.isMouseDown && this.editMode === 'resize') {
         this.resizeLayer(this.activeLayer);
+        this.updateLayerDetails();
       }
 
       if (this.isMouseDown && this.editMode === 'rotate') {
         this.rotateActiveLayer();
+        this.updateLayerDetails();
       }
 
       if (this.isMouseDown === true && this.mode === 'edit' && this.editMode === 'move' && this.activeLayer) {
         this.activeLayer.setPosition(this.mousePosition.x, this.mousePosition.y);
+        this.updateLayerDetails();
       }
     }
   }, {
@@ -1406,6 +2203,14 @@ var Canvas = /*#__PURE__*/function () {
       this.transformOrigin = new _Point.default(x, y);
       this.transformHelper.update();
     }
+  }, {
+    key: "updateLayerDetails",
+    value: function updateLayerDetails() {
+      // Put the active layer in the layer details panel
+      this.layerDetails.setActiveLayer(this.activeLayer); // Update the layer details panel
+
+      this.layerDetails.updateAll();
+    }
   }]);
 
   return Canvas;
@@ -1428,10 +2233,47 @@ function rotationAngle(cx, cy, ex, ey) {
 
 var _default = Canvas;
 exports.default = _default;
-},{"./TransformHelper":"TransformHelper.js","./controllers/shapeController":"controllers/shapeController.js","./controllers/layersController":"controllers/layersController.js","./utils/Point":"utils/Point.js"}],"index.js":[function(require,module,exports) {
+},{"./TransformHelper":"TransformHelper.js","./controllers/shapeController":"controllers/shapeController.js","./controllers/groupController":"controllers/groupController.js","./controllers/layersController":"controllers/layersController.js","./controllers/layerDetailsController":"controllers/layerDetailsController.js","./utils/Point":"utils/Point.js"}],"views/customSelect.js":[function(require,module,exports) {
+"use strict";
+
+Object.defineProperty(exports, "__esModule", {
+  value: true
+});
+exports.default = void 0;
+
+function customSelect() {
+  var dropdowns = document.querySelectorAll('.select');
+  var dropdownChange = new Event('input');
+  dropdowns.forEach(function (dropdown) {
+    dropdown.addEventListener('click', toggleDropdown);
+  });
+
+  function toggleDropdown(event) {
+    var dropdown = event.target.closest('.select');
+    var dropdownOptions = dropdown.querySelector('.select-options');
+    var dropdownBoxText = dropdown.querySelector('.select-box-text');
+    var option = event.target.closest('.select-options-item');
+
+    if (option) {
+      if (dropdownBoxText.innerText !== option.innerText) {
+        dropdownBoxText.innerText = option.innerText;
+        dropdown.dispatchEvent(dropdownChange);
+      }
+    }
+
+    dropdown.classList.toggle('active');
+    dropdownOptions.classList.toggle('hidden');
+  }
+}
+
+var _default = customSelect;
+exports.default = _default;
+},{}],"index.js":[function(require,module,exports) {
 "use strict";
 
 var _Canvas = _interopRequireDefault(require("./Canvas"));
+
+var _customSelect = _interopRequireDefault(require("./views/customSelect"));
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
@@ -1502,7 +2344,8 @@ var appOptions = {
   canvas: document.getElementById('canvas'),
   layersListElement: document.getElementById('layers-panel-list')
 };
-var app = new App(appOptions); //TODO: EXPORT THESE INTO A UI CLASS
+var app = new App(appOptions);
+(0, _customSelect.default)(); //TODO: EXPORT THESE INTO A UI CLASS
 
 var shapeBtns = _toConsumableArray(document.querySelectorAll('.shape-btn'));
 
@@ -1522,7 +2365,7 @@ modeBtns.forEach(function (el) {
   });
 }); // Toggle the buttons in the button groups
 
-var btnGroup = _toConsumableArray(document.querySelectorAll('.ui-group'));
+var btnGroup = _toConsumableArray(document.querySelectorAll('.ui-group-toggle'));
 
 btnGroup.forEach(function (group) {
   return group.addEventListener('click', function (event) {
@@ -1540,7 +2383,9 @@ var actionBtns = _toConsumableArray(document.querySelectorAll('.btn-action'));
 
 actionBtns.forEach(function (btn) {
   return btn.addEventListener('click', function (event) {
-    switch (event.target.getAttribute('data-action')) {
+    var button = event.target.closest('button');
+
+    switch (button.getAttribute('data-action')) {
       case 'layer-front':
         app.canvas.layers.moveLayerToFront(app.canvas.activeLayer);
         break;
@@ -1568,7 +2413,7 @@ colorPicker.addEventListener('input', function () {
   app.canvas.shapeColor = colorPicker.value;
   if (app.canvas.activeLayer) app.canvas.activeLayer.setColor(app.canvas.shapeColor);
 });
-},{"./Canvas":"Canvas.js"}],"../../node_modules/parcel/src/builtins/hmr-runtime.js":[function(require,module,exports) {
+},{"./Canvas":"Canvas.js","./views/customSelect":"views/customSelect.js"}],"../../node_modules/parcel/src/builtins/hmr-runtime.js":[function(require,module,exports) {
 var global = arguments[3];
 var OVERLAY_ID = '__parcel__error__overlay__';
 var OldModule = module.bundle.Module;
@@ -1596,7 +2441,7 @@ var parent = module.bundle.parent;
 if ((!parent || !parent.isParcelRequire) && typeof WebSocket !== 'undefined') {
   var hostname = "" || location.hostname;
   var protocol = location.protocol === 'https:' ? 'wss' : 'ws';
-  var ws = new WebSocket(protocol + '://' + hostname + ':' + "49954" + '/');
+  var ws = new WebSocket(protocol + '://' + hostname + ':' + "64051" + '/');
 
   ws.onmessage = function (event) {
     checkedAssets = {};

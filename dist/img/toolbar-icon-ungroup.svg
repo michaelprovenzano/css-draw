@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="25px" height="25px" viewBox="0 0 25 25" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+    <!-- Generator: Sketch 52.2 (67145) - http://www.bohemiancoding.com/sketch -->
+    <title>toolbar-icon-ungroup</title>
+    <desc>Created with Sketch.</desc>
+    <g id="Symbols" stroke="none" stroke-width="1" fill="none" fill-rule="evenodd">
+        <g id="Toolbar/Button/UnGroup" transform="translate(-5.000000, -6.000000)" fill-rule="nonzero">
+            <g id="toolbar-icon-ungroup" transform="translate(5.000000, 6.000000)">
+                <path d="M3,3 L9,3 L9,9 L3,9 L3,3 Z M3,16 L9,16 L9,22 L3,22 L3,16 Z M16,3 L22,3 L22,9 L16,9 L16,3 Z M16,16 L22,16 L22,22 L16,22 L16,16 Z" id="Combined-Shape-Copy" fill="#D8D8D8"></path>
+                <path d="M13.5,13.5 L13.5,24.5 L24.5,24.5 L24.5,13.5 L13.5,13.5 Z M0.5,13.5 L0.5,24.5 L11.5,24.5 L11.5,13.5 L0.5,13.5 Z M0.5,0.5 L0.5,11.5 L11.5,11.5 L11.5,0.5 L0.5,0.5 Z M13.5,0.5 L13.5,11.5 L24.5,11.5 L24.5,0.5 L13.5,0.5 Z" id="Combined-Shape" stroke="#D8D8D8" opacity="0.503534226"></path>
+            </g>
+        </g>
+    </g>
+</svg>

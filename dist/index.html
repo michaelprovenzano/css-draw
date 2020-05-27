@@ -10,46 +10,255 @@
     <link rel="stylesheet" href="./style.css" />
   </head>
   <body>
-    <!-- partial:index.partial.html -->
-    <header class="ui">
-      <div class="ui-left">
-        <section class="ui-group">
-          <button class="shape-btn active" data-shape="ellipse">Ellipse</button>
-          <button class="shape-btn" data-shape="rectangle">Rectangle</button>
+    <!-- Header - Primary -->
+    <header class="header header-primary ui">
+      <div class="logo">
+        <img src="img/logo.svg" alt="css draw logo" />
+      </div>
+    </header>
+
+    <!-- Header - Secondary -->
+    <header class="header header-secondary ui">
+      <div class="header-group">
+        <section class="ui-group ui-group-toggle">
+          <button class="toolbar-btn mode" data-mode="draw">
+            <img src="img/toolbar-icon-auto.svg" alt="auto icon" />
+          </button>
+          <button class="toolbar-btn mode active" data-mode="draw">
+            <img src="img/toolbar-icon-draw.svg" alt="draw icon" />
+          </button>
+          <button class="toolbar-btn mode" data-mode="edit">
+            <img src="img/toolbar-icon-edit.svg" alt="edit icon" />
+          </button>
         </section>
 
-        <section class="ui-group">
-          <button class="mode active" data-mode="draw">Draw</button>
-          <button class="mode" data-mode="edit">Edit</button>
+        <section class="ui-group ui-group-toggle">
+          <button class="toolbar-btn shape-btn active" data-shape="rectangle">
+            <img src="img/toolbar-icon-rectangle.svg" alt="rectangle icon" />
+          </button>
+          <button class="toolbar-btn shape-btn" data-shape="ellipse">
+            <img src="img/toolbar-icon-ellipse.svg" alt="ellipse icon" />
+          </button>
         </section>
+
+        <span class="separator"></span>
+
         <section class="ui-group">
-          <input type="color" id="shape-color" />
+          <button class="toolbar-btn">
+            <img src="img/toolbar-icon-group.svg" alt="group icon" />
+          </button>
+          <button class="toolbar-btn">
+            <img src="img/toolbar-icon-ungroup.svg" alt="ungroup icon" />
+          </button>
         </section>
-        <section>
-          <button class="btn-action" data-action="layer-front">&upuparrows;</button>
-          <button class="btn-action" data-action="layer-forward">&UpTeeArrow;</button>
-          <button class="btn-action" data-action="layer-backward">&DownTeeArrow;</button>
-          <button class="btn-action" data-action="layer-back">&downdownarrows;</button>
+
+        <span class="separator"></span>
+
+        <section class="ui-group">
+          <button class="toolbar-btn btn-action" data-action="layer-forward">
+            <img src="img/toolbar-icon-layer-forward.svg" alt="layer forward icon" />
+          </button>
+          <button class="toolbar-btn btn-action" data-action="layer-backward">
+            <img src="img/toolbar-icon-layer-backward.svg" alt="layer backward icon" />
+          </button>
+          <button class="toolbar-btn btn-action" data-action="layer-front">
+            <img src="img/toolbar-icon-layer-to-front.svg" alt="layer to front icon" />
+          </button>
+          <button class="toolbar-btn btn-action" data-action="layer-back">
+            <img src="img/toolbar-icon-layer-to-back.svg" alt="layer to back icon" />
+          </button>
         </section>
       </div>
-      <div class="ui-right">
-        <section>
-          <button>Copy CSS</button>
-          <button>Copy HTML</button>
+      <div class="header-group">
+        <section class="ui-group">
+          <button class="toolbar-btn">
+            <img
+              src="img/toolbar-icon-align-center-horizontal.svg"
+              alt="align center horizontal icon"
+            />
+          </button>
+          <button class="toolbar-btn">
+            <img
+              src="img/toolbar-icon-align-center-vertical.svg"
+              alt="align center vertical icon"
+            />
+          </button>
+          <button class="toolbar-btn">
+            <img src="img/toolbar-icon-align-top.svg" alt="align top icon" />
+          </button>
+          <button class="toolbar-btn">
+            <img src="img/toolbar-icon-align-bottom.svg" alt="align bottom icon" />
+          </button>
+          <button class="toolbar-btn">
+            <img src="img/toolbar-icon-align-left.svg" alt="align left icon" />
+          </button>
+          <button class="toolbar-btn">
+            <img src="img/toolbar-icon-align-right.svg" alt="align right icon" />
+          </button>
         </section>
       </div>
     </header>
 
-    <section id="main">
-      <div id="layers-panel">
-        <h4>Layers</h4>
-        <ul id="layers-panel-list"></ul>
-      </div>
-      <div id="canvas" class="draw"></div>
-      <div id="layer-settings-panel">
-        <h4>Settings</h4>
-      </div>
-    </section>
+    <main id="main">
+      <!-- Layers Panel -->
+      <section id="layers-panel" class="layers-panel">
+        <h2 class="panel-heading">Layers</h2>
+        <ul id="layers-panel-list" class="layers-panel-list"></ul>
+      </section>
+
+      <!-- Canvas -->
+      <section id="canvas" class="draw"></section>
+
+      <!-- Layer Details Panel -->
+      <section id="layer-details-panel" class="layer-details-panel">
+        <ul class="tab-group">
+          <li class="tab-item active">
+            Element
+          </li>
+          <li class="tab-item">
+            Before
+          </li>
+          <li class="tab-item">
+            After
+          </li>
+        </ul>
+
+        <div class="layer-details-element tab-group-content">
+          <div class="layer-details-group">
+            <div class="select" id="layer-detail_elementType">
+              <div class="select-box">
+                <span class="select-box-text">Rectangle</span>
+                <span class="select-box-arrow">
+                  <img src="img/dropdown-arrow.svg" alt="dropdown arrow" />
+                </span>
+              </div>
+              <ul class="select-options hidden">
+                <li class="select-options-item">
+                  Rectangle
+                </li>
+                <li class="select-options-item">
+                  Ellipse
+                </li>
+              </ul>
+            </div>
+            <!-- ./select -->
+          </div>
+          <h2 class="panel-heading">Position</h2>
+          <div class="layer-details-group">
+            <div class="row d-flex space-between">
+              <div class="input-group num">
+                <div class="input">
+                  <input type="text" name="layer-detail_elementX" id="layer-detail_elementX" />
+                </div>
+                <div class="input-append">
+                  <label for="layer-detail_elementX">X</label>
+                </div>
+              </div>
+              <!-- ./input-group -->
+
+              <div class="input-group num">
+                <div class="input">
+                  <input type="text" name="layer-detail_elementY" id="layer-detail_elementY" />
+                </div>
+                <div class="input-append">
+                  <label for="layer-detail_elementY">Y</label>
+                </div>
+              </div>
+              <!-- ./input-group -->
+
+              <div class="input-group num">
+                <div class="input">
+                  <input
+                    type="text"
+                    name="layer-detail_elementRotation"
+                    id="layer-detail_elementRotation"
+                  />
+                </div>
+                <div class="input-append">
+                  <label for="layer-detail_elementRotation">DEG</label>
+                </div>
+              </div>
+              <!-- ./input-group -->
+            </div>
+
+            <div class="row d-flex space-between">
+              <div class="input-group num">
+                <div class="input">
+                  <input
+                    type="text"
+                    name="layer-detail_elementWidth"
+                    id="layer-detail_elementWidth"
+                  />
+                </div>
+                <div class="input-append">
+                  <label for="layer-detail_elementWidth">W</label>
+                </div>
+              </div>
+              <!-- ./input-group -->
+
+              <div class="input-group num">
+                <div class="input">
+                  <input
+                    type="text"
+                    name="layer-detail_elementHeight"
+                    id="layer-detail_elementHeight"
+                  />
+                </div>
+                <div class="input-append">
+                  <label for="layer-detail_elementHeight">H</label>
+                </div>
+              </div>
+              <!-- ./input-group -->
+
+              <div class="input-group num">
+                <div class="input">
+                  <input type="text" name="element-rotation-deg" id="element-rotation-deg" />
+                </div>
+                <div class="input-append">
+                  <label for="element-rotation-deg">DEG</label>
+                </div>
+              </div>
+              <!-- ./input-group -->
+            </div>
+          </div>
+          <!-- ./layer-details-group -->
+
+          <h2 class="panel-heading">Style</h2>
+          <div class="panel-subheading collapse-btn">
+            <h3>Fill</h3>
+          </div>
+          <div class="layer-details-group collapsible">
+            <div class="collapse-target">
+              <div class="row">
+                <div class="select">
+                  <div class="select-box">
+                    <span class="select-box-text">Solid Color</span>
+                    <span class="select-box-arrow">
+                      <img src="img/dropdown-arrow.svg" alt="dropdown arrow" />
+                    </span>
+                  </div>
+                  <ul class="select-options hidden">
+                    <li class="select-options-item">
+                      Solid Color
+                    </li>
+                    <li class="select-options-item">
+                      Gradient (Linear)
+                    </li>
+                  </ul>
+                </div>
+                <!-- ./select -->
+              </div>
+              <!-- ./row -->
+
+              <div id="fill-option-solid" class="fill-option">
+                <input type="color" id="shape-color" />
+              </div>
+            </div>
+          </div>
+          <!-- ./layer-details-group -->
+        </div>
+      </section>
+    </main>
 
     <!-- partial -->
     <script src="./script.js"></script>

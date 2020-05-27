@@ -23,11 +23,19 @@ class LayersPanel {
       targetId: layer.model.id,
     };
 
-    this.view.addLayer(layer.model, options);
+    if (layer.model.visible) this.view.addLayer(layer.model, options);
   }
 
-  duplicate(layer) {
-    this.model.duplicate(layer.model);
+  duplicate(layer, id) {
+    let newLayer = this.model.duplicate(layer.model, id);
+
+    const options = {
+      targetId: layer.model.id,
+    };
+
+    this.add(newLayer, options);
+
+    return newLayer;
   }
 
   getLayerById(id) {
@@ -42,9 +50,25 @@ class LayersPanel {
     this.view.makeActive(layer);
   }
 
-  moveLayerForward(layer) {}
+  moveLayerForward(layer) {
+    this.model.moveLayerForward(layer);
+    this.view.moveLayerForward(layer);
+  }
 
-  moveLayerBackward(layer) {}
+  moveLayerBackward(layer) {
+    this.model.moveLayerBackward(layer);
+    this.view.moveLayerBackward(layer);
+  }
+
+  moveLayerToFront(layer) {
+    console.log(layer);
+  }
+
+  moveLayerToBack(layer) {
+    console.log(layer);
+  }
+
+  moveLayerToPosition(layer) {}
 
   remove(layer) {
     this.model.remove(layer.model);

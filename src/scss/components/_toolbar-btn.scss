@@ -1,0 +1,19 @@
+.toolbar-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 36px;
+  width: 36px;
+  border: none;
+  color: $text-light;
+  background: $darkgray2;
+  cursor: pointer;
+
+  &:active {
+    background: $accentColor1;
+  }
+
+  &.active {
+    background: $accentColor1;
+  }
+}

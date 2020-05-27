@@ -52,7 +52,7 @@ class LayersPanelView {
     if (layer.active) className = 'active';
     if (!options) options = {};
     const html = `<li id="for-${options.targetId}" class="${className}" draggable="true">${layer.name}</li>`;
-    this.element.insertAdjacentHTML('beforeend', html);
+    this.element.insertAdjacentHTML('afterbegin', html);
     this.recalculateChildren();
   }
 
@@ -239,7 +239,7 @@ class LayersPanelView {
 
   remove(layer) {
     const layerEl = this.getLayerElementById(layer.id);
-    layerEl.parentNode.removeChild(layerEl);
+    if (layerEl) layerEl.parentNode.removeChild(layerEl);
   }
 
   removeDivider(event) {
@@ -255,6 +255,16 @@ class LayersPanelView {
   makeAllInactive() {
     const children = flattenChildren(this.element.children);
     children.forEach(child => child.classList.remove('active'));
+  }
+
+  moveLayerForward(layer) {
+    let thisLayer = this.getLayerElementById(layer.id);
+    thisLayer.previousSibling.insertAdjacentElement('beforebegin', thisLayer);
+  }
+
+  moveLayerBackward(layer) {
+    let thisLayer = this.getLayerElementById(layer.id);
+    thisLayer.nextSibling.insertAdjacentElement('afterend', thisLayer);
   }
 
   setHoverPosition(event) {

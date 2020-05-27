@@ -1,0 +1,39 @@
+.select {
+  cursor: pointer;
+  user-select: none;
+  color: $text-light;
+  background: $mediumgray;
+  border-radius: 3px;
+  padding: 0 16px;
+  position: relative;
+
+  &.active {
+    border-radius: 3px 3px 0 0;
+  }
+
+  .select-box {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    height: 36px;
+  }
+
+  .select-options {
+    cursor: pointer;
+    user-select: none;
+    list-style: none;
+    padding: 10px 16px 0 16px;
+    color: $text-light;
+    background: $mediumgray;
+    border-top: rgba($lightgray1, 0.1) solid 1px;
+    border-radius: 0 0 3px 3px;
+    position: absolute;
+    top: calc(100% - 3px);
+    left: 0;
+    width: 100%;
+
+    &-item {
+      margin-bottom: 6px;
+    }
+  }
+}

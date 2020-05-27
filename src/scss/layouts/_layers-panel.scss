@@ -1,0 +1,36 @@
+.layers-panel {
+  background: $darkgray2;
+  width: 250px;
+  max-height: calc(100vh - 140px);
+  overflow-y: auto;
+
+  &-list {
+    padding: 0 16px;
+  }
+
+  ul {
+    list-style-type: none;
+  }
+
+  li {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    height: 36px;
+    padding-left: 19px;
+
+    &.active {
+      background: $accentColor1;
+      color: $text-light;
+    }
+  }
+
+  .divider {
+    background: $accentColor1;
+    opacity: 0.5;
+  }
+
+  .hover {
+    background: rgba($accentColor1, 0.7);
+  }
+}

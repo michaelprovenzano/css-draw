@@ -1,0 +1,35 @@
+.layer-details-panel {
+  background: $darkgray2;
+  width: 302px;
+  height: calc(100vh - 140px);
+  overflow-y: auto;
+
+  .tab-group {
+    list-style: none;
+    display: flex;
+    align-items: center;
+
+    .tab-item {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      height: 36px;
+      text-transform: uppercase;
+      cursor: pointer;
+      flex: 1;
+      background: $darkgray1;
+
+      &.active {
+        background: $darkgray2;
+      }
+    }
+  }
+
+  .layer-details-group {
+    padding: 16px;
+  }
+
+  .row {
+    margin-bottom: 16px;
+  }
+}

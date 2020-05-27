@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="18px" height="20px" viewBox="0 0 18 20" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+    <!-- Generator: Sketch 52.2 (67145) - http://www.bohemiancoding.com/sketch -->
+    <title>toolbar-icon-auto</title>
+    <desc>Created with Sketch.</desc>
+    <g id="Symbols" stroke="none" stroke-width="1" fill="none" fill-rule="evenodd">
+        <g id="Toolbar/Button/Auto" transform="translate(-9.000000, -7.000000)" fill="#D8D8D8" fill-rule="nonzero">
+            <g id="toolbar-icon-auto" transform="translate(7.000000, 6.000000)">
+                <path d="M13.9497475,11.9121344 L15.9497475,11.9121344 L15.9497475,19.2710855 L13.9497475,19.2710855 L13.9497475,11.9121344 Z M14.4497475,9.94974747 L15.4497475,9.94974747 C15.7258898,9.94974747 15.9497475,10.1736051 15.9497475,10.4497475 L15.9497475,11.4215377 L13.9497475,11.4215377 L13.9497475,10.4497475 C13.9497475,10.1736051 14.1736051,9.94974747 14.4497475,9.94974747 Z M13.9497475,19.7616822 L15.9497475,19.7616822 L15.1836357,21.7910322 C15.1348709,21.9202051 14.9906239,21.9853887 14.8614509,21.9366239 C14.7942608,21.9112586 14.7412245,21.8582223 14.7158592,21.7910322 L13.9497475,19.7616822 Z" id="Combined-Shape-Copy-2" transform="translate(14.949747, 15.949747) rotate(-315.000000) translate(-14.949747, -15.949747) "></path>
+                <path d="M5.71038422,6.30555185 L5.71038422,10.830127 L4.4857682,10.830127 L4.4857682,6.30555185 L2.09807621,7.05642224 L5.09807621,0.830127019 L8.09807621,7.05642224 L5.71038422,6.30555185 Z" id="Combined-Shape-Copy" transform="translate(5.098076, 5.830127) rotate(-30.000000) translate(-5.098076, -5.830127) "></path>
+            </g>
+        </g>
+    </g>
+</svg>

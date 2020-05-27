@@ -1,4 +1,5 @@
 import Canvas from './Canvas';
+import customSelect from './views/customSelect';
 
 class App {
   constructor(options) {
@@ -43,6 +44,8 @@ const appOptions = {
 
 const app = new App(appOptions);
 
+customSelect();
+
 //TODO: EXPORT THESE INTO A UI CLASS
 const shapeBtns = [...document.querySelectorAll('.shape-btn')];
 shapeBtns.forEach(el =>
@@ -61,7 +64,7 @@ modeBtns.forEach(el =>
 );
 
 // Toggle the buttons in the button groups
-const btnGroup = [...document.querySelectorAll('.ui-group')];
+const btnGroup = [...document.querySelectorAll('.ui-group-toggle')];
 btnGroup.forEach(group =>
   group.addEventListener('click', function (event) {
     const btns = [...group.children];
@@ -74,7 +77,9 @@ btnGroup.forEach(group =>
 const actionBtns = [...document.querySelectorAll('.btn-action')];
 actionBtns.forEach(btn =>
   btn.addEventListener('click', function (event) {
-    switch (event.target.getAttribute('data-action')) {
+    const button = event.target.closest('button');
+
+    switch (button.getAttribute('data-action')) {
       case 'layer-front':
         app.canvas.layers.moveLayerToFront(app.canvas.activeLayer);
         break;

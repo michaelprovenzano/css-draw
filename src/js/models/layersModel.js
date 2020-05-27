@@ -20,15 +20,16 @@ class Layers {
 
   duplicate(layerObject, newId) {
     let layer = this.getLayerById(layerObject.id);
-    let newLayer = new Shape(layer);
+
+    let newLayer = new Shape(layer.model);
 
     newLayer.id = newId;
+    newLayer.model.id = newId;
     newLayer.zIndex = newId;
-    newLayer.name = newLayer.name + ' copy';
+    newLayer.model.name = newLayer.model.name + ' copy';
 
-    newLayer.add(layer.parent);
     this.add(newLayer);
-    newLayer.update();
+
     return newLayer;
   }
 
@@ -54,8 +55,8 @@ class Layers {
     const index = this.getLayerIndex(layer);
     if (index !== this.layers.length - 1) {
       // Switch z-index values
-      this.layers[index].zIndex = index + 1;
-      this.layers[index + 1].zIndex = index;
+      this.layers[index].model.zIndex = index + 1;
+      this.layers[index + 1].model.zIndex = index;
 
       // Switch values in array
       [this.layers[index + 1], this.layers[index]] = [this.layers[index], this.layers[index + 1]];
@@ -70,8 +71,8 @@ class Layers {
     const index = this.getLayerIndex(layer);
     if (index !== 0) {
       // Switch z-index values
-      this.layers[index - 1].zIndex = index;
-      this.layers[index].zIndex = index - 1;
+      this.layers[index - 1].model.zIndex = index;
+      this.layers[index].model.zIndex = index - 1;
 
       // Switch values in array
       [this.layers[index - 1], this.layers[index]] = [this.layers[index], this.layers[index - 1]];

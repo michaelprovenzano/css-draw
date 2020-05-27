@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="12px" height="7px" viewBox="0 0 12 7" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+    <!-- Generator: Sketch 52.2 (67145) - http://www.bohemiancoding.com/sketch -->
+    <title>Path</title>
+    <desc>Created with Sketch.</desc>
+    <g id="Symbols" stroke="none" stroke-width="1" fill="none" fill-rule="evenodd">
+        <g id="Dropdown" transform="translate(-242.000000, -15.000000)" fill="#D8D8D8" fill-rule="nonzero">
+            <path d="M251.449747,18.9497475 C251.72589,18.9497475 251.949747,19.1736051 251.949747,19.4497475 C251.949747,19.7258898 251.72589,19.9497475 251.449747,19.9497475 L244.449747,19.9497475 C244.173605,19.9497475 243.949747,19.7258898 243.949747,19.4497475 L243.949747,12.4497475 C243.949747,12.1736051 244.173605,11.9497475 244.449747,11.9497475 C244.72589,11.9497475 244.949747,12.1736051 244.949747,12.4497475 L244.949747,18.9497475 L251.449747,18.9497475 Z" id="Path" transform="translate(247.949747, 15.949747) rotate(-45.000000) translate(-247.949747, -15.949747) "></path>
+        </g>
+    </g>
+</svg>
