@@ -31,6 +31,11 @@ class LayerDetailsController {
     }
   }
 
+  setInactiveLayer() {
+    this.model = undefined;
+    this.layer = undefined;
+  }
+
   setAll() {
     let data = this.model;
 

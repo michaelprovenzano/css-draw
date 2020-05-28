@@ -10,6 +10,7 @@ class GroupModel extends LayerModel {
 
     // Bindings ///////
     this.add = this.add.bind(this);
+    this.clearClickPosition = this.clearClickPosition.bind(this);
     this.updateGroupBounds = this.updateGroupBounds.bind(this);
     this.setLayerPositions = this.setLayerPositions.bind(this);
     this.setLayerSizes = this.setLayerSizes.bind(this);
@@ -22,11 +23,25 @@ class GroupModel extends LayerModel {
     return this.layers;
   }
 
+  clearClickPosition() {
+    // Set group clickEvent
+    this.clickEvent = undefined;
+
+    // Set layers clickEvent
+    this.layers.forEach((layer, i) => {
+      layer.clearClickPosition();
+    });
+  }
+
   forAllLayers(callback) {
     // Loop through layers
     this.layers.forEach((layer, i) => {
       callback(layer, i);
     });
+  }
+
+  getLayers() {
+    return this.layers;
   }
 
   updateGroupBounds() {

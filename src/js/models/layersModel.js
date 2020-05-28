@@ -7,6 +7,7 @@ class Layers {
 
     // Bindings //
     this.add = this.add.bind(this);
+    this.includes = this.includes.bind(this);
     this.makeAllInactive = this.makeAllInactive.bind(this);
     this.remove = this.remove.bind(this);
     this.getLayerById = this.getLayerById.bind(this);
@@ -31,6 +32,10 @@ class Layers {
     this.add(newLayer);
 
     return newLayer;
+  }
+
+  includes(layer) {
+    return this.layers.includes(layer);
   }
 
   getLayerById(id) {

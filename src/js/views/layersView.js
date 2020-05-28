@@ -239,8 +239,6 @@ class LayersPanelView {
   }
 
   remove(layer) {
-    console.log(layer);
-
     const layerEl = this.getLayerElementById(layer.id);
     if (layerEl) layerEl.parentNode.removeChild(layerEl);
   }

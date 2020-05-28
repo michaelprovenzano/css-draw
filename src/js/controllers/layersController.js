@@ -9,6 +9,7 @@ class LayersPanel {
     // Bindings
     this.add = this.add.bind(this);
     this.duplicate = this.duplicate.bind(this);
+    this.includes = this.includes.bind(this);
     this.getLayerById = this.getLayerById.bind(this);
     this.makeInactive = this.makeInactive.bind(this);
     this.makeActive = this.makeActive.bind(this);
@@ -37,6 +38,10 @@ class LayersPanel {
     this.add(newLayer, options);
 
     return newLayer;
+  }
+
+  includes(layer) {
+    return this.model.includes(layer);
   }
 
   getLayerById(id) {
@@ -78,6 +83,13 @@ class LayersPanel {
   remove(layer) {
     this.model.remove(layer.model);
     this.view.remove(layer.model);
+  }
+
+  setGroupPermanant(group) {
+    const options = {
+      targetId: group.model.id,
+    };
+    this.view.addLayer(group.model, options);
   }
 }
 

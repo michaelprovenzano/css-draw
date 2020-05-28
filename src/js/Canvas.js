@@ -33,7 +33,7 @@ class Canvas {
     this.mousedown = this.mousedown.bind(this);
     this.mouseup = this.mouseup.bind(this);
     this.mousemove = this.mousemove.bind(this);
-    this.addGroup = this.addGroup.bind(this);
+    this.addTempGroup = this.addTempGroup.bind(this);
     this.addLayer = this.addLayer.bind(this);
     this.updateLayerDetails = this.updateLayerDetails.bind(this);
 
@@ -58,13 +58,16 @@ class Canvas {
     this.id++;
   }
 
-  addGroup(layers, parent, visible = true, temp = false) {
-    let isVisible = visible;
-    let isTemp = temp;
+  addGroup(group) {
+    group.setPermanant();
+    this.layers.setGroupPermanant(group);
+  }
+
+  addTempGroup(layers, parent) {
     let options = {
       id: this.id,
-      visible: isVisible,
-      temp: isTemp,
+      visible: false,
+      temp: true,
     };
 
     const group = new Group(options);
@@ -75,9 +78,14 @@ class Canvas {
     return group;
   }
 
+  addLayerToGroup(layer, group) {
+    group.add([layer]);
+    return group;
+  }
+
   clearActiveLayer() {
     // Make the layer in layers panel inactive
-    this.layers.makeInactive(this.activeLayer);
+    this.layers.makeAllInactive();
 
     // If the activeLayer is a temp group remove it
     if (this.activeLayer.temp) this.layers.remove(this.activeLayer);
@@ -85,9 +93,28 @@ class Canvas {
     // Make sure the activeLayer is cleared
     this.activeLayer = undefined;
 
+    // Clear the layer details panel
+    this.updateLayerDetails();
+
     // Remove the transformHelper
     this.transformHelper.remove();
-    console.log(this);
+  }
+
+  deleteLayer(layer) {
+    // If layer is group, delete all containing layers before deleting the group
+    if (layer.type === 'group') {
+      let layers = layer.getLayers();
+      layers.forEach(curLayer => {
+        this.layers.remove(curLayer); // Remove from layers panel
+        curLayer.remove(); // Remove layer shape
+      });
+    }
+
+    this.layers.remove(layer); // Remove from layers panel
+    this.activeLayer.remove(); // Remove layer shape
+    this.activeLayer = undefined;
+    this.transformHelper.remove();
+    this.updateLayerDetails();
   }
 
   keydown(event) {
@@ -103,11 +130,7 @@ class Canvas {
         break;
       // delete
       case 46 || 8:
-        this.layers.remove(this.activeLayer);
-        this.activeLayer.remove();
-        this.activeLayer = undefined;
-        this.transformHelper.remove();
-        this.updateLayerDetails();
+        this.deleteLayer(this.activeLayer);
         break;
       // up
       case 38:
@@ -126,6 +149,9 @@ class Canvas {
         this.transformHelper.set(newLayer);
         this.id++;
         break;
+      case 71:
+        if (this.activeLayer.temp && this.activeLayer.type === 'group')
+          this.addGroup(this.activeLayer);
       default:
         break;
     }
@@ -149,6 +175,9 @@ class Canvas {
   }
 
   makeActiveLayer(object) {
+    // Update group bounds first
+    if (object.type === 'group') object.updateGroupBounds();
+
     // Make the shape on canvas active
     if (this.activeLayer) {
       this.activeLayer.active = false;
@@ -161,6 +190,11 @@ class Canvas {
 
     // Make the layer in layers panel active
     this.layers.makeActive(this.activeLayer);
+
+    if (object.type === 'group' && object.temp) {
+      let layers = object.getLayers();
+      layers.forEach(layer => this.layers.makeActive(layer));
+    }
 
     this.updateLayerDetails();
   }
@@ -226,11 +260,21 @@ class Canvas {
       }
     }
     if (this.mode === 'edit' && this.editMode === 'grouping') {
+      let group;
+
       // Get the target layer
       let target = this.layers.getLayerById(event.target.id);
 
-      // Group the activelayer and target layer in a temporary group
-      let group = this.addGroup([this.activeLayer, target], this.element, false, true);
+      if (this.activeLayer.temp) {
+        // If the active layer is a temp group assign it to group
+        group = this.activeLayer;
+
+        // Add the layer to temp group if temp group exists
+        this.addLayerToGroup(target, group);
+      } else {
+        // Group the activelayer and target layer in a temporary group
+        group = this.addTempGroup([this.activeLayer, target], this.element);
+      }
 
       // If target layer exists and it isn't the helper make it active
       if (target && event.target.id !== 'transform-helper-box') this.makeActiveLayer(group);
@@ -253,7 +297,7 @@ class Canvas {
     this.isMouseDown = false;
     this.resize = false;
 
-    // Clear the click position after releasing the object - enables resizing in groups
+    // Clear the click position after releasing the object - enables accurate manipulation of size/position/rotation of groups and their contents
     if (this.activeLayer) this.activeLayer.clearClickPosition();
 
     if (this.activeLayer && this.mode === 'draw') {
