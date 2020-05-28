@@ -9,6 +9,7 @@ class Group extends LayerController {
     this.model = new GroupModel(options);
     this.view = new GroupView(options);
     this.type = 'group';
+    options.hasOwnProperty('temp') ? (this.temp = options.temp) : (this.temp = false);
 
     // Bindings
     this.add = this.add.bind(this);

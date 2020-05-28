@@ -33,6 +33,7 @@ class LayersPanelView {
     this.dragOver = this.dragOver.bind(this);
     this.dragLeave = this.dragLeave.bind(this);
     this.drop = this.drop.bind(this);
+    this.makeInactive = this.makeInactive.bind(this);
     this.makeAllInactive = this.makeAllInactive.bind(this);
     this.nestElement = this.nestElement.bind(this);
     this.recalculateChildren = this.recalculateChildren.bind(this);
@@ -238,6 +239,8 @@ class LayersPanelView {
   }
 
   remove(layer) {
+    console.log(layer);
+
     const layerEl = this.getLayerElementById(layer.id);
     if (layerEl) layerEl.parentNode.removeChild(layerEl);
   }
@@ -245,6 +248,11 @@ class LayersPanelView {
   removeDivider(event) {
     const divider = this.divider.element;
     if (divider.parentNode) divider.parentNode.removeChild(divider);
+  }
+
+  makeInactive(layer) {
+    const layerEl = this.getLayerElementById(layer.id);
+    if (layerEl) layerEl.classList.remove('active');
   }
 
   makeActive(layer) {

@@ -278,6 +278,7 @@ var LayerModel = /*#__PURE__*/function () {
     this.zIndex = 1; // Bindings ///////
 
     this.makeActive = this.makeActive.bind(this);
+    this.makeInactive = this.makeInactive.bind(this);
     this.setBoundsFromElement = this.setBoundsFromElement.bind(this);
     this.setSize = this.setSize.bind(this);
     this.setRelativePosition = this.setRelativePosition.bind(this);
@@ -290,9 +291,19 @@ var LayerModel = /*#__PURE__*/function () {
   }
 
   _createClass(LayerModel, [{
+    key: "clearClickPosition",
+    value: function clearClickPosition() {
+      this.clickEvent = undefined;
+    }
+  }, {
     key: "makeActive",
-    value: function makeActive(layer) {
+    value: function makeActive() {
       this.active = true;
+    }
+  }, {
+    key: "makeInactive",
+    value: function makeInactive() {
+      this.active = false;
     }
   }, {
     key: "setBoundsFromElement",
@@ -563,8 +574,10 @@ var Layer = /*#__PURE__*/function () {
     this.id = this.model.id; // Bindings
 
     this.add = this.add.bind(this);
+    this.clearClickPosition = this.clearClickPosition.bind(this);
     this.getProperties = this.getProperties.bind(this);
     this.getTransformOrigin = this.getTransformOrigin.bind(this);
+    this.makeInactive = this.makeInactive.bind(this);
     this.makeActive = this.makeActive.bind(this);
     this.setClickPosition = this.setClickPosition.bind(this);
     this.setColor = this.setColor.bind(this);
@@ -584,6 +597,16 @@ var Layer = /*#__PURE__*/function () {
       this.view.add(parent, this.model);
       this.model.setBoundsFromElement(this.view.element);
       return this;
+    }
+  }, {
+    key: "clearClickPosition",
+    value: function clearClickPosition() {
+      this.model.clearClickPosition();
+    }
+  }, {
+    key: "makeInactive",
+    value: function makeInactive(layer) {
+      this.model.makeInactive();
     }
   }, {
     key: "getProperties",
@@ -953,16 +976,14 @@ var GroupView = /*#__PURE__*/function (_LayerView) {
     key: "add",
     value: function add(parent, groupObj) {
       this.parent = parent;
-      var element = "<".concat(groupObj.tag, " class=\"shape\" id=\"").concat(groupObj.id, "\" style=\"top:").concat(groupObj.top, "px; left:").concat(groupObj.left, "px; width:").concat(groupObj.width, "px; height:").concat(groupObj.height, "px; background:").concat(groupObj.backgroundColor, "; z-index:").concat(groupObj.zIndex, "\"></").concat(groupObj.tag, ">");
+      var element = "<".concat(groupObj.tag, " class=\"shape\" id=\"for-").concat(groupObj.id, "\" style=\"top:").concat(groupObj.top, "px; left:").concat(groupObj.left, "px; width:").concat(groupObj.width, "px; height:").concat(groupObj.height, "px; background:").concat(groupObj.backgroundColor, "; z-index:").concat(groupObj.zIndex, "\"></").concat(groupObj.tag, ">");
       this.parent.insertAdjacentHTML('beforeend', element);
       this.element = this.parent.lastElementChild;
-      console.log(this);
       return this;
     }
   }, {
     key: "remove",
     value: function remove() {
-      console.log(this.element);
       this.element.parentNode.removeChild(this.element);
       return null;
     }
@@ -1024,7 +1045,8 @@ var Group = /*#__PURE__*/function (_LayerController) {
     _this = _super.call(this, options);
     _this.model = new _groupModel.default(options);
     _this.view = new _groupView.default(options);
-    _this.type = 'group'; // Bindings
+    _this.type = 'group';
+    options.hasOwnProperty('temp') ? _this.temp = options.temp : _this.temp = false; // Bindings
 
     _this.add = _this.add.bind(_assertThisInitialized(_this));
     _this.setPosition = _this.setPosition.bind(_assertThisInitialized(_this));
@@ -1303,6 +1325,7 @@ var LayersPanelView = /*#__PURE__*/function () {
     this.dragOver = this.dragOver.bind(this);
     this.dragLeave = this.dragLeave.bind(this);
     this.drop = this.drop.bind(this);
+    this.makeInactive = this.makeInactive.bind(this);
     this.makeAllInactive = this.makeAllInactive.bind(this);
     this.nestElement = this.nestElement.bind(this);
     this.recalculateChildren = this.recalculateChildren.bind(this);
@@ -1490,6 +1513,7 @@ var LayersPanelView = /*#__PURE__*/function () {
   }, {
     key: "remove",
     value: function remove(layer) {
+      console.log(layer);
       var layerEl = this.getLayerElementById(layer.id);
       if (layerEl) layerEl.parentNode.removeChild(layerEl);
     }
@@ -1498,6 +1522,12 @@ var LayersPanelView = /*#__PURE__*/function () {
     value: function removeDivider(event) {
       var divider = this.divider.element;
       if (divider.parentNode) divider.parentNode.removeChild(divider);
+    }
+  }, {
+    key: "makeInactive",
+    value: function makeInactive(layer) {
+      var layerEl = this.getLayerElementById(layer.id);
+      if (layerEl) layerEl.classList.remove('active');
     }
   }, {
     key: "makeActive",
@@ -1584,6 +1614,7 @@ var LayersPanel = /*#__PURE__*/function () {
     this.add = this.add.bind(this);
     this.duplicate = this.duplicate.bind(this);
     this.getLayerById = this.getLayerById.bind(this);
+    this.makeInactive = this.makeInactive.bind(this);
     this.makeActive = this.makeActive.bind(this);
     this.moveLayerForward = this.moveLayerForward.bind(this);
     this.moveLayerBackward = this.moveLayerBackward.bind(this);
@@ -1618,6 +1649,11 @@ var LayersPanel = /*#__PURE__*/function () {
     key: "makeAllInactive",
     value: function makeAllInactive() {
       this.view.makeAllInactive();
+    }
+  }, {
+    key: "makeInactive",
+    value: function makeInactive(layer) {
+      this.view.makeInactive(layer);
     }
   }, {
     key: "makeActive",
@@ -1872,8 +1908,8 @@ var Canvas = /*#__PURE__*/function () {
     this.mousedown = this.mousedown.bind(this);
     this.mouseup = this.mouseup.bind(this);
     this.mousemove = this.mousemove.bind(this);
-    this.makeGroup = this.makeGroup.bind(this);
-    this.drawShape = this.drawShape.bind(this);
+    this.addGroup = this.addGroup.bind(this);
+    this.addLayer = this.addLayer.bind(this);
     this.updateLayerDetails = this.updateLayerDetails.bind(this);
     canvas.addEventListener('mousedown', this.mousedown);
     canvas.addEventListener('mouseup', this.mouseup);
@@ -1884,8 +1920,8 @@ var Canvas = /*#__PURE__*/function () {
   }
 
   _createClass(Canvas, [{
-    key: "drawShape",
-    value: function drawShape(options) {
+    key: "addLayer",
+    value: function addLayer(options) {
       var shape = new _shapeController.default(options);
       var parent = this.element;
       this.layers.makeAllInactive();
@@ -1895,13 +1931,16 @@ var Canvas = /*#__PURE__*/function () {
       this.id++;
     }
   }, {
-    key: "makeGroup",
-    value: function makeGroup(layers, parent) {
+    key: "addGroup",
+    value: function addGroup(layers, parent) {
       var visible = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : true;
+      var temp = arguments.length > 3 && arguments[3] !== undefined ? arguments[3] : false;
       var isVisible = visible;
+      var isTemp = temp;
       var options = {
         id: this.id,
-        visible: isVisible
+        visible: isVisible,
+        temp: isTemp
       };
       var group = new _groupController.default(options);
       if (layers) group.add(layers, parent);
@@ -1910,10 +1949,17 @@ var Canvas = /*#__PURE__*/function () {
       return group;
     }
   }, {
-    key: "removeGroup",
-    value: function removeGroup(group) {
-      this.layers.remove(group);
-      this.makeActiveLayer();
+    key: "clearActiveLayer",
+    value: function clearActiveLayer() {
+      // Make the layer in layers panel inactive
+      this.layers.makeInactive(this.activeLayer); // If the activeLayer is a temp group remove it
+
+      if (this.activeLayer.temp) this.layers.remove(this.activeLayer); // Make sure the activeLayer is cleared
+
+      this.activeLayer = undefined; // Remove the transformHelper
+
+      this.transformHelper.remove();
+      console.log(this);
     }
   }, {
     key: "keydown",
@@ -1992,7 +2038,6 @@ var Canvas = /*#__PURE__*/function () {
         this.layers.makeAllInactive();
       }
 
-      console.log(object);
       this.activeLayer = object;
       this.activeLayer.makeActive();
       this.transformHelper.set(object); // Make the layer in layers panel active
@@ -2001,19 +2046,14 @@ var Canvas = /*#__PURE__*/function () {
       this.updateLayerDetails();
     }
   }, {
-    key: "removeActiveLayer",
-    value: function removeActiveLayer() {
-      this.activeLayer.active = false;
-      this.activeLayer = undefined;
-    }
-  }, {
     key: "mousedown",
     value: function mousedown(event) {
       this.isMouseDown = true; // Initialize these variables
 
       this.drawStart = copy(this.mousePosition);
       this.drawEnd = copy(this.mousePosition);
-      this.transformOrigin = copy(this.mousePosition);
+      this.transformOrigin = copy(this.mousePosition); // Inital shape options
+
       var shapeOptions = {
         top: this.drawStart.y,
         left: this.drawStart.x,
@@ -2025,13 +2065,15 @@ var Canvas = /*#__PURE__*/function () {
         transformOrigin: copy(this.mousePosition)
       }; // HANDLE CANVAS INTERACTIONS
 
-      if (this.mode === 'draw') this.drawShape(shapeOptions);
+      if (this.mode === 'draw') this.addLayer(shapeOptions);
 
       if (this.mode === 'edit' && this.editMode !== 'grouping') {
         // Get the target layer
         var target = this.layers.getLayerById(event.target.id); // If target layer exists and it isn't the helper make it active
 
-        if (target && event.target.id !== 'transform-helper-box') this.makeActiveLayer(target); // Attach the helper to the active layer or remove if it doesn't exist
+        if (target && event.target.id !== 'transform-helper-box') this.makeActiveLayer(target); // If the click is on the canvas clear the active layer
+
+        if (event.target.id === this.element.id) this.clearActiveLayer(); // Attach the helper to the active layer or remove if it doesn't exist
 
         if (this.activeLayer) {
           this.transformHelper.set(this.activeLayer);
@@ -2057,10 +2099,10 @@ var Canvas = /*#__PURE__*/function () {
 
       if (this.mode === 'edit' && this.editMode === 'grouping') {
         // Get the target layer
-        var _target = this.layers.getLayerById(event.target.id); // Group the activelayer and target layer
+        var _target = this.layers.getLayerById(event.target.id); // Group the activelayer and target layer in a temporary group
 
 
-        var group = this.makeGroup([this.activeLayer, _target], this.element, false); // If target layer exists and it isn't the helper make it active
+        var group = this.addGroup([this.activeLayer, _target], this.element, false, true); // If target layer exists and it isn't the helper make it active
 
         if (_target && event.target.id !== 'transform-helper-box') this.makeActiveLayer(group); // Attach the helper to the active layer or remove if it doesn't exist
 
@@ -2069,8 +2111,6 @@ var Canvas = /*#__PURE__*/function () {
         } else {
           this.transformHelper.remove();
         }
-
-        console.log(this);
       }
 
       if (this.mode === 'edit' && this.activeLayer && event.target.id === 'transform-helper-box') {
@@ -2082,7 +2122,9 @@ var Canvas = /*#__PURE__*/function () {
     key: "mouseup",
     value: function mouseup(event) {
       this.isMouseDown = false;
-      this.resize = false;
+      this.resize = false; // Clear the click position after releasing the object - enables resizing in groups
+
+      if (this.activeLayer) this.activeLayer.clearClickPosition();
 
       if (this.activeLayer && this.mode === 'draw') {
         if (this.activeLayer.width === 0 || this.activeLayer.height === 0) {
@@ -2128,6 +2170,18 @@ var Canvas = /*#__PURE__*/function () {
         x: this.mousePosition.x - this.activeLayer.left,
         y: this.mousePosition.y - this.activeLayer.top
       };
+    }
+  }, {
+    key: "removeActiveLayer",
+    value: function removeActiveLayer() {
+      this.activeLayer.active = false;
+      this.activeLayer = undefined;
+    }
+  }, {
+    key: "removeGroup",
+    value: function removeGroup(group) {
+      this.layers.remove(group);
+      this.makeActiveLayer();
     }
   }, {
     key: "resizeLayer",
@@ -2441,7 +2495,7 @@ var parent = module.bundle.parent;
 if ((!parent || !parent.isParcelRequire) && typeof WebSocket !== 'undefined') {
   var hostname = "" || location.hostname;
   var protocol = location.protocol === 'https:' ? 'wss' : 'ws';
-  var ws = new WebSocket(protocol + '://' + hostname + ':' + "64051" + '/');
+  var ws = new WebSocket(protocol + '://' + hostname + ':' + "59851" + '/');
 
   ws.onmessage = function (event) {
     checkedAssets = {};

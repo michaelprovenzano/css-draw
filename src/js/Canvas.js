@@ -33,8 +33,8 @@ class Canvas {
     this.mousedown = this.mousedown.bind(this);
     this.mouseup = this.mouseup.bind(this);
     this.mousemove = this.mousemove.bind(this);
-    this.makeGroup = this.makeGroup.bind(this);
-    this.drawShape = this.drawShape.bind(this);
+    this.addGroup = this.addGroup.bind(this);
+    this.addLayer = this.addLayer.bind(this);
     this.updateLayerDetails = this.updateLayerDetails.bind(this);
 
     canvas.addEventListener('mousedown', this.mousedown);
@@ -46,7 +46,7 @@ class Canvas {
     document.addEventListener('keyup', this.keyup);
   }
 
-  drawShape(options) {
+  addLayer(options) {
     const shape = new Shape(options);
     const parent = this.element;
 
@@ -58,9 +58,15 @@ class Canvas {
     this.id++;
   }
 
-  makeGroup(layers, parent, visible = true) {
+  addGroup(layers, parent, visible = true, temp = false) {
     let isVisible = visible;
-    let options = { id: this.id, visible: isVisible };
+    let isTemp = temp;
+    let options = {
+      id: this.id,
+      visible: isVisible,
+      temp: isTemp,
+    };
+
     const group = new Group(options);
 
     if (layers) group.add(layers, parent);
@@ -69,9 +75,19 @@ class Canvas {
     return group;
   }
 
-  removeGroup(group) {
-    this.layers.remove(group);
-    this.makeActiveLayer();
+  clearActiveLayer() {
+    // Make the layer in layers panel inactive
+    this.layers.makeInactive(this.activeLayer);
+
+    // If the activeLayer is a temp group remove it
+    if (this.activeLayer.temp) this.layers.remove(this.activeLayer);
+
+    // Make sure the activeLayer is cleared
+    this.activeLayer = undefined;
+
+    // Remove the transformHelper
+    this.transformHelper.remove();
+    console.log(this);
   }
 
   keydown(event) {
@@ -138,7 +154,6 @@ class Canvas {
       this.activeLayer.active = false;
       this.layers.makeAllInactive();
     }
-    console.log(object);
 
     this.activeLayer = object;
     this.activeLayer.makeActive();
@@ -150,11 +165,6 @@ class Canvas {
     this.updateLayerDetails();
   }
 
-  removeActiveLayer() {
-    this.activeLayer.active = false;
-    this.activeLayer = undefined;
-  }
-
   mousedown(event) {
     this.isMouseDown = true;
 
@@ -163,6 +173,7 @@ class Canvas {
     this.drawEnd = copy(this.mousePosition);
     this.transformOrigin = copy(this.mousePosition);
 
+    // Inital shape options
     const shapeOptions = {
       top: this.drawStart.y,
       left: this.drawStart.x,
@@ -175,13 +186,16 @@ class Canvas {
     };
 
     // HANDLE CANVAS INTERACTIONS
-    if (this.mode === 'draw') this.drawShape(shapeOptions);
+    if (this.mode === 'draw') this.addLayer(shapeOptions);
     if (this.mode === 'edit' && this.editMode !== 'grouping') {
       // Get the target layer
       const target = this.layers.getLayerById(event.target.id);
 
       // If target layer exists and it isn't the helper make it active
       if (target && event.target.id !== 'transform-helper-box') this.makeActiveLayer(target);
+
+      // If the click is on the canvas clear the active layer
+      if (event.target.id === this.element.id) this.clearActiveLayer();
 
       // Attach the helper to the active layer or remove if it doesn't exist
       if (this.activeLayer) {
@@ -215,8 +229,8 @@ class Canvas {
       // Get the target layer
       let target = this.layers.getLayerById(event.target.id);
 
-      // Group the activelayer and target layer
-      let group = this.makeGroup([this.activeLayer, target], this.element, false);
+      // Group the activelayer and target layer in a temporary group
+      let group = this.addGroup([this.activeLayer, target], this.element, false, true);
 
       // If target layer exists and it isn't the helper make it active
       if (target && event.target.id !== 'transform-helper-box') this.makeActiveLayer(group);
@@ -227,7 +241,6 @@ class Canvas {
       } else {
         this.transformHelper.remove();
       }
-      console.log(this);
     }
 
     if (this.mode === 'edit' && this.activeLayer && event.target.id === 'transform-helper-box') {
@@ -239,6 +252,10 @@ class Canvas {
   mouseup(event) {
     this.isMouseDown = false;
     this.resize = false;
+
+    // Clear the click position after releasing the object - enables resizing in groups
+    if (this.activeLayer) this.activeLayer.clearClickPosition();
+
     if (this.activeLayer && this.mode === 'draw') {
       if (this.activeLayer.width === 0 || this.activeLayer.height === 0) {
         this.layers.remove(this.activeLayer);
@@ -283,6 +300,16 @@ class Canvas {
       x: this.mousePosition.x - this.activeLayer.left,
       y: this.mousePosition.y - this.activeLayer.top,
     };
+  }
+
+  removeActiveLayer() {
+    this.activeLayer.active = false;
+    this.activeLayer = undefined;
+  }
+
+  removeGroup(group) {
+    this.layers.remove(group);
+    this.makeActiveLayer();
   }
 
   resizeLayer(layer) {

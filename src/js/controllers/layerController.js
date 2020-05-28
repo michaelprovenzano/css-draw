@@ -9,8 +9,10 @@ class Layer {
 
     // Bindings
     this.add = this.add.bind(this);
+    this.clearClickPosition = this.clearClickPosition.bind(this);
     this.getProperties = this.getProperties.bind(this);
     this.getTransformOrigin = this.getTransformOrigin.bind(this);
+    this.makeInactive = this.makeInactive.bind(this);
     this.makeActive = this.makeActive.bind(this);
     this.setClickPosition = this.setClickPosition.bind(this);
     this.setColor = this.setColor.bind(this);
@@ -28,6 +30,14 @@ class Layer {
     this.view.add(parent, this.model);
     this.model.setBoundsFromElement(this.view.element);
     return this;
+  }
+
+  clearClickPosition() {
+    this.model.clearClickPosition();
+  }
+
+  makeInactive(layer) {
+    this.model.makeInactive();
   }
 
   getProperties() {

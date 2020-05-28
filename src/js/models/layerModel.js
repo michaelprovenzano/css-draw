@@ -25,6 +25,7 @@ class LayerModel {
 
     // Bindings ///////
     this.makeActive = this.makeActive.bind(this);
+    this.makeInactive = this.makeInactive.bind(this);
     this.setBoundsFromElement = this.setBoundsFromElement.bind(this);
     this.setSize = this.setSize.bind(this);
     this.setRelativePosition = this.setRelativePosition.bind(this);
@@ -36,8 +37,16 @@ class LayerModel {
     this.setClickPosition = this.setClickPosition.bind(this);
   }
 
-  makeActive(layer) {
+  clearClickPosition() {
+    this.clickEvent = undefined;
+  }
+
+  makeActive() {
     this.active = true;
+  }
+
+  makeInactive() {
+    this.active = false;
   }
 
   setBoundsFromElement(element) {

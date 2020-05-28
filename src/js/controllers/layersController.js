@@ -10,6 +10,7 @@ class LayersPanel {
     this.add = this.add.bind(this);
     this.duplicate = this.duplicate.bind(this);
     this.getLayerById = this.getLayerById.bind(this);
+    this.makeInactive = this.makeInactive.bind(this);
     this.makeActive = this.makeActive.bind(this);
     this.moveLayerForward = this.moveLayerForward.bind(this);
     this.moveLayerBackward = this.moveLayerBackward.bind(this);
@@ -44,6 +45,10 @@ class LayersPanel {
 
   makeAllInactive() {
     this.view.makeAllInactive();
+  }
+
+  makeInactive(layer) {
+    this.view.makeInactive(layer);
   }
 
   makeActive(layer) {
