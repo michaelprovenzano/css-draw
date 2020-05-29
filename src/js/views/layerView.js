@@ -1,6 +1,6 @@
 import Point from '../utils/Point';
 
-class ShapeView {
+class LayerView {
   constructor(options) {
     // Bindings ///////
     this.add = this.add.bind(this);
@@ -20,7 +20,9 @@ class ShapeView {
   }
 
   remove() {
-    this.element.parentNode.removeChild(this.element);
+    let element = document.getElementById(this.element.id);
+
+    if (element) this.element.parentNode.removeChild(this.element);
     return null;
   }
 
@@ -35,4 +37,4 @@ class ShapeView {
   }
 }
 
-export default ShapeView;
+export default LayerView;

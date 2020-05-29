@@ -452,16 +452,16 @@ function _defineProperties(target, props) { for (var i = 0; i < props.length; i+
 
 function _createClass(Constructor, protoProps, staticProps) { if (protoProps) _defineProperties(Constructor.prototype, protoProps); if (staticProps) _defineProperties(Constructor, staticProps); return Constructor; }
 
-var ShapeView = /*#__PURE__*/function () {
-  function ShapeView(options) {
-    _classCallCheck(this, ShapeView);
+var LayerView = /*#__PURE__*/function () {
+  function LayerView(options) {
+    _classCallCheck(this, LayerView);
 
     // Bindings ///////
     this.add = this.add.bind(this);
     this.update = this.update.bind(this);
   }
 
-  _createClass(ShapeView, [{
+  _createClass(LayerView, [{
     key: "add",
     value: function add(parent, shapeObject) {
       this.parent = parent;
@@ -478,7 +478,8 @@ var ShapeView = /*#__PURE__*/function () {
   }, {
     key: "remove",
     value: function remove() {
-      this.element.parentNode.removeChild(this.element);
+      var element = document.getElementById(this.element.id);
+      if (element) this.element.parentNode.removeChild(this.element);
       return null;
     }
   }, {
@@ -494,10 +495,10 @@ var ShapeView = /*#__PURE__*/function () {
     }
   }]);
 
-  return ShapeView;
+  return LayerView;
 }();
 
-var _default = ShapeView;
+var _default = LayerView;
 exports.default = _default;
 },{"../utils/Point":"utils/Point.js"}],"views/shapeView.js":[function(require,module,exports) {
 "use strict";
@@ -807,6 +808,7 @@ var GroupModel = /*#__PURE__*/function (_LayerModel) {
     _classCallCheck(this, GroupModel);
 
     _this = _super.call(this, options);
+    _this.name = options.name || "Group ".concat(options.id);
     _this.type = 'group';
     _this.backgroundColor = 'none';
     _this.layers = []; // Bindings ///////
@@ -823,7 +825,12 @@ var GroupModel = /*#__PURE__*/function (_LayerModel) {
   _createClass(GroupModel, [{
     key: "add",
     value: function add(layers) {
-      var _this$layers;
+      var _this2 = this,
+          _this$layers;
+
+      this.layers.forEach(function (layer) {
+        return layer.group = _this2;
+      });
 
       (_this$layers = this.layers).push.apply(_this$layers, _toConsumableArray(layers));
 
@@ -894,41 +901,47 @@ var GroupModel = /*#__PURE__*/function (_LayerModel) {
   }, {
     key: "setRelativeProperties",
     value: function setRelativeProperties() {
-      var _this2 = this;
+      var _this3 = this;
 
       // Loop through layers
       this.layers.forEach(function (layer, i) {
-        layer.setRelativeProperties(_this2);
+        layer.setRelativeProperties(_this3);
       });
     }
   }, {
     key: "setLayerSizes",
     value: function setLayerSizes() {
-      var _this3 = this;
+      var _this4 = this;
 
       // Loop through layers
       this.layers.forEach(function (layer, i) {
-        layer.setRelativeSize(_this3);
+        layer.setRelativeSize(_this4);
       });
     }
   }, {
     key: "setLayerPositions",
     value: function setLayerPositions() {
-      var _this4 = this;
-
-      // Loop through layers
-      this.layers.forEach(function (layer, i) {
-        layer.setRelativePosition(_this4);
-      });
-    }
-  }, {
-    key: "updateLayers",
-    value: function updateLayers() {
       var _this5 = this;
 
       // Loop through layers
       this.layers.forEach(function (layer, i) {
-        layer.update(_this5);
+        layer.setRelativePosition(_this5);
+      });
+    }
+  }, {
+    key: "unGroupLayer",
+    value: function unGroupLayer(layer) {
+      var index = this.layers.indexOf(layer);
+      this.layers.splice(index, 1);
+    }
+  }, {
+    key: "updateLayers",
+    value: function updateLayers() {
+      var _this6 = this;
+
+      // Loop through layers
+      this.layers.forEach(function (layer, i) {
+        layer.update(_this6);
       });
     }
   }]);
@@ -1118,6 +1131,11 @@ var Group = /*#__PURE__*/function (_LayerController) {
       this.updateLayers();
     }
   }, {
+    key: "unGroupLayer",
+    value: function unGroupLayer(layer) {
+      this.model.unGroupLayer(layer);
+    }
+  }, {
     key: "updateGroupBounds",
     value: function updateGroupBounds() {
       // Update the group bounds
@@ -1286,6 +1304,7 @@ var Layers = /*#__PURE__*/function () {
   }, {
     key: "remove",
     value: function remove(object) {
+      if (this.group) object.unGroupLayer(object);
       var index = this.getLayerIndex(object);
       this.layers.splice(index, 1);
     }
@@ -1365,8 +1384,9 @@ var LayersPanelView = /*#__PURE__*/function () {
       return el.setAttribute('draggable', 'true');
     });
     this.element.addEventListener('click', function (event) {
-      if (event.target.getAttribute('data-list-component') === 'group-name' || event.target.getAttribute('data-list-component') === 'group-expand-btn') {
+      if (event.target.getAttribute('data-list-component') === 'group-expand-btn') {
         event.target.closest('.list-component-group').classList.toggle('collapsed');
+        event.target.classList.toggle('expanded');
       }
     }); // Bindings
 
@@ -1392,10 +1412,17 @@ var LayersPanelView = /*#__PURE__*/function () {
   _createClass(LayersPanelView, [{
     key: "addLayer",
     value: function addLayer(layer, options) {
-      var className = '';
+      var html,
+          className = '';
       if (layer.active) className = 'active';
       if (!options) options = {};
-      var html = "<li id=\"for-".concat(options.targetId, "\" class=\"").concat(className, "\" draggable=\"true\">").concat(layer.name, "</li>");
+
+      if (options.group) {
+        html = "\n      <li class=\"list-component-group ".concat(className, "\" draggable=\"true\" data-list-component=\"group\">\n        <div id=\"for-").concat(options.targetId, "\" class=\"group list-component-group-name\" data-list-component=\"group-name\">\n        <span class=\"expand-icon expanded\" data-list-component=\"group-expand-btn\">&rsaquo;</span>\n          ").concat(layer.name, "\n        </div>\n        <ul class=\"list-component-group-body\" data-list-component=\"group-body\"></ul>\n      </li>");
+      } else {
+        html = "<li id=\"for-".concat(options.targetId, "\" class=\"").concat(className, "\" draggable=\"true\">").concat(layer.name, "</li>");
+      }
+
       this.element.insertAdjacentHTML('afterbegin', html);
       this.recalculateChildren();
     }
@@ -1437,29 +1464,29 @@ var LayersPanelView = /*#__PURE__*/function () {
       }
 
       if (this.hoverPosition === 'bottom' && !this.isGroupComponent(event.target)) {
-        if (event.target === this.element || event.target === divider) return; // console.log('bottom');
+        if (event.target === this.element || event.target === divider) return;
 
         if (!divider) {
           event.target.insertAdjacentElement('afterend', this.divider.element);
-          divider = (_readOnlyError("divider"), event.target.nextSibling);
+          divider = (_readOnlyError("divider"), event.target.nextElementSibling);
         } else {
-          event.target.parentNode.insertBefore(divider, event.target.nextSibling);
+          event.target.parentNode.insertBefore(divider, event.target.nextElementSibling);
         }
       }
 
       if (this.hoverPosition === 'top' && !this.isGroupComponent(event.target)) {
-        if (event.target === this.element || event.target === divider) return; // console.log('top');
+        if (event.target === this.element || event.target === divider) return;
 
         if (!divider) {
           event.target.insertAdjacentElement('beforebegin', this.divider.element);
-          divider = (_readOnlyError("divider"), event.target.nextSibling);
+          divider = (_readOnlyError("divider"), event.target.nextElementSibling);
         } else {
           event.target.parentNode.insertBefore(divider, event.target);
         }
       }
 
       if (this.hoverPosition === 'top' && this.isGroupComponent(event.target, 'group-name')) {
-        if (event.target === this.element || event.target === divider) return; // console.log('top');
+        if (event.target === this.element || event.target === divider) return;
 
         if (!divider) {
           event.target.parentNode.insertAdjacentElement('beforebegin', this.divider.element);
@@ -1533,10 +1560,12 @@ var LayersPanelView = /*#__PURE__*/function () {
   }, {
     key: "nestElement",
     value: function nestElement(target, thisEl) {
+      console.log(target);
+
       if (target.getAttribute('data-list-component') === 'group-name') {
-        target.nextSibling.insertAdjacentElement('beforeend', thisEl);
+        target.nextElementSibling.insertAdjacentElement('beforeend', thisEl);
       } else if (target.getAttribute('data-list-component') === 'group') {
-        target.lastChild.insertAdjacentElement('beforeend', thisEl);
+        target.lastElementChild.insertAdjacentElement('beforeend', thisEl);
       } else if (target.getAttribute('data-list-component') === 'group-body') {
         target.insertAdjacentElement('beforeend', thisEl);
       } else {
@@ -1564,7 +1593,13 @@ var LayersPanelView = /*#__PURE__*/function () {
     key: "remove",
     value: function remove(layer) {
       var layerEl = this.getLayerElementById(layer.id);
-      if (layerEl) layerEl.parentNode.removeChild(layerEl);
+      if (!layerEl) return;
+
+      if (layer.type === 'group') {
+        layerEl.parentNode.parentNode.removeChild(layerEl.parentNode);
+      } else {
+        layerEl.parentNode.removeChild(layerEl);
+      }
     }
   }, {
     key: "removeDivider",
@@ -1573,16 +1608,22 @@ var LayersPanelView = /*#__PURE__*/function () {
       if (divider.parentNode) divider.parentNode.removeChild(divider);
     }
   }, {
+    key: "makeActive",
+    value: function makeActive(layer) {
+      var layerEl = this.getLayerElementById(layer.id);
+      if (!layerEl) return;
+
+      if (layer.type === 'group') {
+        layerEl.parentNode.classList.add('active');
+      } else {
+        layerEl.classList.add('active');
+      }
+    }
+  }, {
     key: "makeInactive",
     value: function makeInactive(layer) {
       var layerEl = this.getLayerElementById(layer.id);
       if (layerEl) layerEl.classList.remove('active');
-    }
-  }, {
-    key: "makeActive",
-    value: function makeActive(layer) {
-      var layerEl = this.getLayerElementById(layer.id);
-      if (layerEl) layerEl.classList.add('active');
     }
   }, {
     key: "makeAllInactive",
@@ -1602,7 +1643,7 @@ var LayersPanelView = /*#__PURE__*/function () {
     key: "moveLayerBackward",
     value: function moveLayerBackward(layer) {
       var thisLayer = this.getLayerElementById(layer.id);
-      thisLayer.nextSibling.insertAdjacentElement('afterend', thisLayer);
+      thisLayer.nextElementSibling.insertAdjacentElement('afterend', thisLayer);
     }
   }, {
     key: "setHoverPosition",
@@ -1706,14 +1747,14 @@ var LayersPanel = /*#__PURE__*/function () {
       this.view.makeAllInactive();
     }
   }, {
-    key: "makeInactive",
-    value: function makeInactive(layer) {
-      this.view.makeInactive(layer);
-    }
-  }, {
     key: "makeActive",
     value: function makeActive(layer) {
       this.view.makeActive(layer);
+    }
+  }, {
+    key: "makeInactive",
+    value: function makeInactive(layer) {
+      this.view.makeInactive(layer);
     }
   }, {
     key: "moveLayerForward",
@@ -1749,10 +1790,22 @@ var LayersPanel = /*#__PURE__*/function () {
   }, {
     key: "setGroupPermanant",
     value: function setGroupPermanant(group) {
+      var _this = this;
+
       var options = {
-        targetId: group.model.id
-      };
-      this.view.addLayer(group.model, options);
+        targetId: group.model.id,
+        group: true
+      }; // Create the layer
+
+      this.view.addLayer(group.model, options); // Nest the children in the parent
+
+      var children = group.model.getLayers();
+      var parent = this.view.getLayerElementById(group.id);
+      if (children) children.forEach(function (item) {
+        var child = _this.view.getLayerElementById(item.id);
+
+        _this.view.nestElement(parent, child);
+      });
     }
   }]);
 
@@ -2504,6 +2557,8 @@ var App = /*#__PURE__*/function () {
         var thisLayer = this.canvas.layers.getLayerById(id);
         if (thisLayer) this.canvas.makeActiveLayer(thisLayer);
       }
+
+      console.log(event.target);
     }
   }, {
     key: "mouseup",
@@ -2617,7 +2672,7 @@ var parent = module.bundle.parent;
 if ((!parent || !parent.isParcelRequire) && typeof WebSocket !== 'undefined') {
   var hostname = "" || location.hostname;
   var protocol = location.protocol === 'https:' ? 'wss' : 'ws';
-  var ws = new WebSocket(protocol + '://' + hostname + ':' + "49756" + '/');
+  var ws = new WebSocket(protocol + '://' + hostname + ':' + "49940" + '/');
 
   ws.onmessage = function (event) {
     checkedAssets = {};

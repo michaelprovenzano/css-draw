@@ -16,12 +16,22 @@
     display: flex;
     align-items: center;
     flex-wrap: wrap;
-    height: 36px;
+    min-height: 36px;
     padding-left: 19px;
 
     &.active {
       background: $accentColor1;
       color: $text-light;
+
+      &.list-component-group {
+        background: none;
+        color: inherit;
+
+        & .list-component-group-name {
+          background: $accentColor1;
+          color: $text-light;
+        }
+      }
     }
   }
 

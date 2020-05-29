@@ -52,12 +52,12 @@ class LayersPanel {
     this.view.makeAllInactive();
   }
 
-  makeInactive(layer) {
-    this.view.makeInactive(layer);
-  }
-
   makeActive(layer) {
     this.view.makeActive(layer);
+  }
+
+  makeInactive(layer) {
+    this.view.makeInactive(layer);
   }
 
   moveLayerForward(layer) {
@@ -88,8 +88,21 @@ class LayersPanel {
   setGroupPermanant(group) {
     const options = {
       targetId: group.model.id,
+      group: true,
     };
+
+    // Create the layer
     this.view.addLayer(group.model, options);
+
+    // Nest the children in the parent
+    let children = group.model.getLayers();
+    let parent = this.view.getLayerElementById(group.id);
+
+    if (children)
+      children.forEach(item => {
+        let child = this.view.getLayerElementById(item.id);
+        this.view.nestElement(parent, child);
+      });
   }
 }
 

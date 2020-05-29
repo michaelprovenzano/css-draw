@@ -19,11 +19,9 @@ class LayersPanelView {
     this.children.forEach(el => el.setAttribute('draggable', 'true'));
 
     this.element.addEventListener('click', function (event) {
-      if (
-        event.target.getAttribute('data-list-component') === 'group-name' ||
-        event.target.getAttribute('data-list-component') === 'group-expand-btn'
-      ) {
+      if (event.target.getAttribute('data-list-component') === 'group-expand-btn') {
         event.target.closest('.list-component-group').classList.toggle('collapsed');
+        event.target.classList.toggle('expanded');
       }
     });
 
@@ -49,10 +47,22 @@ class LayersPanelView {
   }
 
   addLayer(layer, options) {
-    let className = '';
+    let html,
+      className = '';
     if (layer.active) className = 'active';
     if (!options) options = {};
-    const html = `<li id="for-${options.targetId}" class="${className}" draggable="true">${layer.name}</li>`;
+    if (options.group) {
+      html = `
+      <li class="list-component-group ${className}" draggable="true" data-list-component="group">
+        <div id="for-${options.targetId}" class="group list-component-group-name" data-list-component="group-name">
+        <span class="expand-icon expanded" data-list-component="group-expand-btn">&rsaquo;</span>
+          ${layer.name}
+        </div>
+        <ul class="list-component-group-body" data-list-component="group-body"></ul>
+      </li>`;
+    } else {
+      html = `<li id="for-${options.targetId}" class="${className}" draggable="true">${layer.name}</li>`;
+    }
     this.element.insertAdjacentHTML('afterbegin', html);
     this.recalculateChildren();
   }
@@ -104,22 +114,20 @@ class LayersPanelView {
 
     if (this.hoverPosition === 'bottom' && !this.isGroupComponent(event.target)) {
       if (event.target === this.element || event.target === divider) return;
-      // console.log('bottom');
       if (!divider) {
         event.target.insertAdjacentElement('afterend', this.divider.element);
-        divider = event.target.nextSibling;
+        divider = event.target.nextElementSibling;
       } else {
-        event.target.parentNode.insertBefore(divider, event.target.nextSibling);
+        event.target.parentNode.insertBefore(divider, event.target.nextElementSibling);
       }
     }
 
     if (this.hoverPosition === 'top' && !this.isGroupComponent(event.target)) {
       if (event.target === this.element || event.target === divider) return;
-      // console.log('top');
 
       if (!divider) {
         event.target.insertAdjacentElement('beforebegin', this.divider.element);
-        divider = event.target.nextSibling;
+        divider = event.target.nextElementSibling;
       } else {
         event.target.parentNode.insertBefore(divider, event.target);
       }
@@ -127,7 +135,6 @@ class LayersPanelView {
 
     if (this.hoverPosition === 'top' && this.isGroupComponent(event.target, 'group-name')) {
       if (event.target === this.element || event.target === divider) return;
-      // console.log('top');
       if (!divider) {
         event.target.parentNode.insertAdjacentElement('beforebegin', this.divider.element);
         divider = event.target.parentNode.previousSibling;
@@ -207,10 +214,12 @@ class LayersPanelView {
   }
 
   nestElement(target, thisEl) {
+    console.log(target);
+
     if (target.getAttribute('data-list-component') === 'group-name') {
-      target.nextSibling.insertAdjacentElement('beforeend', thisEl);
+      target.nextElementSibling.insertAdjacentElement('beforeend', thisEl);
     } else if (target.getAttribute('data-list-component') === 'group') {
-      target.lastChild.insertAdjacentElement('beforeend', thisEl);
+      target.lastElementChild.insertAdjacentElement('beforeend', thisEl);
     } else if (target.getAttribute('data-list-component') === 'group-body') {
       target.insertAdjacentElement('beforeend', thisEl);
     } else {
@@ -240,7 +249,13 @@ class LayersPanelView {
 
   remove(layer) {
     const layerEl = this.getLayerElementById(layer.id);
-    if (layerEl) layerEl.parentNode.removeChild(layerEl);
+    if (!layerEl) return;
+
+    if (layer.type === 'group') {
+      layerEl.parentNode.parentNode.removeChild(layerEl.parentNode);
+    } else {
+      layerEl.parentNode.removeChild(layerEl);
+    }
   }
 
   removeDivider(event) {
@@ -248,14 +263,20 @@ class LayersPanelView {
     if (divider.parentNode) divider.parentNode.removeChild(divider);
   }
 
+  makeActive(layer) {
+    const layerEl = this.getLayerElementById(layer.id);
+    if (!layerEl) return;
+
+    if (layer.type === 'group') {
+      layerEl.parentNode.classList.add('active');
+    } else {
+      layerEl.classList.add('active');
+    }
+  }
+
   makeInactive(layer) {
     const layerEl = this.getLayerElementById(layer.id);
     if (layerEl) layerEl.classList.remove('active');
-  }
-
-  makeActive(layer) {
-    const layerEl = this.getLayerElementById(layer.id);
-    if (layerEl) layerEl.classList.add('active');
   }
 
   makeAllInactive() {
@@ -270,7 +291,7 @@ class LayersPanelView {
 
   moveLayerBackward(layer) {
     let thisLayer = this.getLayerElementById(layer.id);
-    thisLayer.nextSibling.insertAdjacentElement('afterend', thisLayer);
+    thisLayer.nextElementSibling.insertAdjacentElement('afterend', thisLayer);
   }
 
   setHoverPosition(event) {

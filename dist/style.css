@@ -74,11 +74,17 @@ h6 {
     display: flex;
     align-items: center;
     flex-wrap: wrap;
-    height: 36px;
+    min-height: 36px;
     padding-left: 19px; }
     .layers-panel li.active {
       background: #0d6ecc;
       color: #d3d3d3; }
+      .layers-panel li.active.list-component-group {
+        background: none;
+        color: inherit; }
+        .layers-panel li.active.list-component-group .list-component-group-name {
+          background: #0d6ecc;
+          color: #d3d3d3; }
   .layers-panel .divider {
     background: #0d6ecc;
     opacity: 0.5; }
@@ -155,7 +161,20 @@ h6 {
     display: flex;
     align-items: center;
     width: 100%;
-    height: 36px; }
+    height: 36px;
+    position: relative; }
+    .list-component-group-name .expand-icon {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 30px;
+      width: 30px;
+      position: absolute;
+      left: -30px;
+      top: 50%;
+      transform: translateY(-50%); }
+      .list-component-group-name .expand-icon.expanded {
+        transform: translateY(-50%) rotate(90deg); }
   .list-component-group-body {
     width: 100%; }
     .list-component-group-body li {

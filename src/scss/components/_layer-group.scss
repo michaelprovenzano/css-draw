@@ -6,6 +6,23 @@
     align-items: center;
     width: 100%;
     height: 36px;
+    position: relative;
+
+    .expand-icon {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 30px;
+      width: 30px;
+      position: absolute;
+      left: -30px;
+      top: 50%;
+      transform: translateY(-50%);
+
+      &.expanded {
+        transform: translateY(-50%) rotate(90deg);
+      }
+    }
   }
 
   &-body {

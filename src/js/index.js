@@ -30,6 +30,7 @@ class App {
       let thisLayer = this.canvas.layers.getLayerById(id);
       if (thisLayer) this.canvas.makeActiveLayer(thisLayer);
     }
+    console.log(event.target);
   }
 
   mouseup(event) {}

@@ -4,6 +4,7 @@ import LayerModel from './layerModel';
 class GroupModel extends LayerModel {
   constructor(options) {
     super(options);
+    this.name = options.name || `Group ${options.id}`;
     this.type = 'group';
     this.backgroundColor = 'none';
     this.layers = [];
@@ -18,6 +19,7 @@ class GroupModel extends LayerModel {
   }
 
   add(layers) {
+    this.layers.forEach(layer => (layer.group = this));
     this.layers.push(...layers);
     this.updateGroupBounds();
     return this.layers;
@@ -99,6 +101,11 @@ class GroupModel extends LayerModel {
     this.layers.forEach((layer, i) => {
       layer.setRelativePosition(this);
     });
+  }
+
+  unGroupLayer(layer) {
+    let index = this.layers.indexOf(layer);
+    this.layers.splice(index, 1);
   }
 
   updateLayers() {

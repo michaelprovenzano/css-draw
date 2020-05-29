@@ -113,6 +113,7 @@ class Layers {
   }
 
   remove(object) {
+    if (this.group) object.unGroupLayer(object);
     let index = this.getLayerIndex(object);
     this.layers.splice(index, 1);
   }

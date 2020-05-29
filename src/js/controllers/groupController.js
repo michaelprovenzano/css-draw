@@ -61,6 +61,10 @@ class Group extends LayerController {
     this.updateLayers();
   }
 
+  unGroupLayer(layer) {
+    this.model.unGroupLayer(layer);
+  }
+
   updateGroupBounds() {
     // Update the group bounds
     this.model.updateGroupBounds();
