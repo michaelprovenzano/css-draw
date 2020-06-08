@@ -13,6 +13,10 @@ class KeyHandler {
       layerToFront: ['control', 'arrowup'],
       layerToBack: ['control', 'arrowdown'],
     };
+
+    // If a keypress combination matches an action it will be added to the on handler.
+    // This handler can be assigned functions like so:
+    // keyHandler.on.delete = function();
     this.on = {};
 
     this.getAction = this.getAction.bind(this);

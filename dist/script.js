@@ -2075,7 +2075,10 @@ var KeyHandler = /*#__PURE__*/function () {
       layerBackward: ['arrowdown'],
       layerToFront: ['control', 'arrowup'],
       layerToBack: ['control', 'arrowdown']
-    };
+    }; // If a keypress combination matches an action it will be added to the on handler.
+    // This handler can be assigned functions like so:
+    // keyHandler.on.delete = function();
+
     this.on = {};
     this.getAction = this.getAction.bind(this);
     this.getKeys = this.getKeys.bind(this);
@@ -2278,7 +2281,9 @@ var Canvas = /*#__PURE__*/function () {
   }, {
     key: "clearActiveLayer",
     value: function clearActiveLayer() {
-      // Make the layer in layers panel inactive
+      // Exit if there is not activeLayer
+      if (!this.activeLayer) return; // Make the layer in layers panel inactive
+
       this.layers.makeAllInactive(); // If the activeLayer is a temp group remove it
 
       if (this.activeLayer.temp) this.layers.remove(this.activeLayer); // Make sure the activeLayer is cleared

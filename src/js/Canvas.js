@@ -100,6 +100,9 @@ class Canvas {
   }
 
   clearActiveLayer() {
+    // Exit if there is not activeLayer
+    if (!this.activeLayer) return;
+
     // Make the layer in layers panel inactive
     this.layers.makeAllInactive();
 
