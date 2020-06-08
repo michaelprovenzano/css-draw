@@ -153,6 +153,8 @@ function _defineProperties(target, props) { for (var i = 0; i < props.length; i+
 
 function _createClass(Constructor, protoProps, staticProps) { if (protoProps) _defineProperties(Constructor.prototype, protoProps); if (staticProps) _defineProperties(Constructor, staticProps); return Constructor; }
 
+var rotateIcon = "\n<svg width=\"22px\" height=\"22px\" viewBox=\"0 0 22 22\" version=\"1.1\" xmlns=\"http://www.w3.org/2000/svg\" xmlns:xlink=\"http://www.w3.org/1999/xlink\">\n    <g id=\"Page-1\" stroke=\"none\" stroke-width=\"1\" fill=\"none\" fill-rule=\"evenodd\">\n        <g id=\"Desktop-HD\" transform=\"translate(-439.000000, -314.000000)\" fill=\"#0D6ECC\" fill-rule=\"nonzero\" stroke=\"#D8D8D8\" stroke-width=\"0.764925529\">\n            <path d=\"M453.296077,319.499304 C447.482837,319.499304 444.499434,322.320361 444.499434,328.296021 L445.939002,328.296021 C446.361459,328.296021 446.703928,328.63849 446.703928,329.060946 C446.703928,329.179697 446.67628,329.296816 446.623173,329.403029 L444.036217,334.576986 C443.847289,334.954844 443.38782,335.108002 443.009962,334.919075 C442.861927,334.845057 442.741891,334.725022 442.667874,334.576986 L440.080917,329.403029 C439.89199,329.025172 440.045148,328.565702 440.423006,328.376775 C440.529219,328.323669 440.646338,328.296021 440.765088,328.296021 L442.204657,328.296021 C442.204657,321.023375 446.243292,317.204508 453.296077,317.204508 L453.296077,315.764926 C453.296077,315.34247 453.638546,315.000001 454.061003,315.000001 C454.179754,315.000001 454.296875,315.027649 454.40309,315.080757 L459.577006,317.667737 C459.954862,317.856666 460.108017,318.316137 459.919087,318.693993 C459.845071,318.842025 459.725038,318.962058 459.577006,319.036075 L454.40309,321.623054 C454.025234,321.811984 453.565763,321.658829 453.376834,321.280973 C453.323726,321.174758 453.296077,321.057637 453.296077,320.938885 L453.296077,319.499304 Z\" id=\"Combined-Shape\"></path>\n        </g>\n    </g>\n</svg>";
+
 var TransformHelper = /*#__PURE__*/function () {
   function TransformHelper(options) {
     _classCallCheck(this, TransformHelper);
@@ -184,7 +186,7 @@ var TransformHelper = /*#__PURE__*/function () {
       this.rotation = this.target.rotation;
       this.transformOrigin = shape.transformOrigin; // Generate the html
 
-      var element = "\n    <div class=\"transform-helper\" id=\"transform-helper-box\" style=\"top:".concat(this.top, "px; left:").concat(this.left, "px; width:").concat(this.width, "px; height:").concat(this.height, "px; transform: rotate(").concat(this.rotation, "deg); z-index:10000\">\n      <div class=\"transform-origin\" style=\"top:").concat(this.transformOrigin.y, "px; left:").concat(this.transformOrigin.x, "px; transform: translate(-50%, -50%)\"></div>\n\t\t\t<div class=\"anchor top-left corner\"></div>\n\t\t\t<div class=\"anchor top-right corner\"></div>\n\t\t\t<div class=\"anchor bottom-left corner\"></div>\n\t\t\t<div class=\"anchor bottom-right corner\"></div>\n    </div>"); // Insert the htmls
+      var element = "\n    <div class=\"transform-helper\" id=\"transform-helper-box\" style=\"top:".concat(this.top, "px; left:").concat(this.left, "px; width:").concat(this.width, "px; height:").concat(this.height, "px; transform: rotate(").concat(this.rotation, "deg); z-index:10000\">\n      <div class=\"transform-origin\" style=\"top:").concat(this.transformOrigin.y, "px; left:").concat(this.transformOrigin.x, "px; transform: translate(-50%, -50%)\"></div>\n\t\t\t<div class=\"anchor top-left corner\"></div>\n\t\t\t<div class=\"anchor top-right corner\"></div>\n\t\t\t<div class=\"anchor bottom-left corner\"></div>\n      <div class=\"anchor bottom-right corner\"></div>\n      <div class=\"rotate-icon top-left\">").concat(rotateIcon, "</div>\n      <div class=\"rotate-icon top-right\">").concat(rotateIcon, "</div>\n      <div class=\"rotate-icon bottom-left\">").concat(rotateIcon, "</div>\n      <div class=\"rotate-icon bottom-right\">").concat(rotateIcon, "</div>\n      \n    </div>"); // Insert the htmls
 
       this.target.view.element.insertAdjacentHTML('beforebegin', element); // Set the references on the TranformHelper object
 
@@ -479,7 +481,7 @@ var LayerView = /*#__PURE__*/function () {
     key: "remove",
     value: function remove() {
       var element = document.getElementById(this.element.id);
-      if (element) this.element.parentNode.removeChild(this.element);
+      if (element) this.element.parentNode.removeChild(element);
       return null;
     }
   }, {
@@ -613,6 +615,11 @@ var Layer = /*#__PURE__*/function () {
     key: "getProperties",
     value: function getProperties() {
       return this.model;
+    }
+  }, {
+    key: "getRotation",
+    value: function getRotation() {
+      return this.model.rotation;
     }
   }, {
     key: "getTransformOrigin",
@@ -1009,12 +1016,6 @@ var GroupView = /*#__PURE__*/function (_LayerView) {
       this.parent.insertAdjacentHTML('beforeend', element);
       this.element = this.parent.lastElementChild;
       return this;
-    }
-  }, {
-    key: "remove",
-    value: function remove() {
-      this.element.parentNode.removeChild(this.element);
-      return null;
     }
   }]);
 
@@ -1560,8 +1561,6 @@ var LayersPanelView = /*#__PURE__*/function () {
   }, {
     key: "nestElement",
     value: function nestElement(target, thisEl) {
-      console.log(target);
-
       if (target.getAttribute('data-list-component') === 'group-name') {
         target.nextElementSibling.insertAdjacentElement('beforeend', thisEl);
       } else if (target.getAttribute('data-list-component') === 'group') {
@@ -1595,7 +1594,7 @@ var LayersPanelView = /*#__PURE__*/function () {
       var layerEl = this.getLayerElementById(layer.id);
       if (!layerEl) return;
 
-      if (layer.type === 'group') {
+      if (layer.type === 'group' && !layer.temp) {
         layerEl.parentNode.parentNode.removeChild(layerEl.parentNode);
       } else {
         layerEl.parentNode.removeChild(layerEl);
@@ -1785,7 +1784,7 @@ var LayersPanel = /*#__PURE__*/function () {
     key: "remove",
     value: function remove(layer) {
       this.model.remove(layer.model);
-      this.view.remove(layer.model);
+      this.view.remove(layer);
     }
   }, {
     key: "setGroupPermanant",
@@ -1973,7 +1972,169 @@ var LayerDetailsController = /*#__PURE__*/function () {
 
 var _default = LayerDetailsController;
 exports.default = _default;
-},{"../views/layerDetailsView":"views/layerDetailsView.js"}],"Canvas.js":[function(require,module,exports) {
+},{"../views/layerDetailsView":"views/layerDetailsView.js"}],"KeyMap.js":[function(require,module,exports) {
+"use strict";
+
+Object.defineProperty(exports, "__esModule", {
+  value: true
+});
+exports.default = void 0;
+
+function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+
+function _defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } }
+
+function _createClass(Constructor, protoProps, staticProps) { if (protoProps) _defineProperties(Constructor.prototype, protoProps); if (staticProps) _defineProperties(Constructor, staticProps); return Constructor; }
+
+var KeyMap = /*#__PURE__*/function () {
+  function KeyMap() {
+    _classCallCheck(this, KeyMap);
+
+    this.alt = false;
+    this.ctrl = false;
+    this.shift = false;
+    this.delete = false;
+    this.arrowup = false;
+    this.arrowright = false;
+    this.arrowdown = false;
+    this.arrowleft = false;
+    this.a = false;
+    this.b = false;
+    this.c = false;
+    this.d = false;
+    this.e = false;
+    this.f = false;
+    this.g = false;
+    this.h = false;
+    this.j = false;
+    this.k = false;
+    this.l = false;
+    this.m = false;
+    this.n = false;
+    this.o = false;
+    this.p = false;
+    this.q = false;
+    this.r = false;
+    this.s = false;
+    this.t = false;
+    this.v = false;
+    this.w = false;
+    this.x = false;
+    this.y = false;
+    this.z = false;
+  }
+
+  _createClass(KeyMap, [{
+    key: "keydown",
+    value: function keydown(event) {
+      var key = event.key.toLowerCase();
+      this[key] = true;
+    }
+  }, {
+    key: "keyup",
+    value: function keyup(event) {
+      var key = event.key.toLowerCase();
+      this[key] = false;
+    }
+  }]);
+
+  return KeyMap;
+}();
+
+var _default = KeyMap;
+exports.default = _default;
+},{}],"KeyboardEvents.js":[function(require,module,exports) {
+"use strict";
+
+Object.defineProperty(exports, "__esModule", {
+  value: true
+});
+exports.default = void 0;
+
+var _KeyMap = _interopRequireDefault(require("./KeyMap"));
+
+function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+
+function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+
+function _defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } }
+
+function _createClass(Constructor, protoProps, staticProps) { if (protoProps) _defineProperties(Constructor.prototype, protoProps); if (staticProps) _defineProperties(Constructor, staticProps); return Constructor; }
+
+var KeyHandler = /*#__PURE__*/function () {
+  function KeyHandler() {
+    _classCallCheck(this, KeyHandler);
+
+    this.keysDown = new _KeyMap.default();
+    this.actions = {
+      delete: ['delete'],
+      duplicate: ['control', 'd'],
+      group: ['control', 'g'],
+      groupingMode: ['shift'],
+      layerForward: ['arrowup'],
+      layerBackward: ['arrowdown'],
+      layerToFront: ['control', 'arrowup'],
+      layerToBack: ['control', 'arrowdown']
+    };
+    this.on = {};
+    this.getAction = this.getAction.bind(this);
+    this.getKeys = this.getKeys.bind(this);
+    this.keydown = this.keydown.bind(this);
+    this.keyup = this.keyup.bind(this);
+    document.addEventListener('keydown', this.keydown);
+    document.addEventListener('keyup', this.keyup);
+  }
+
+  _createClass(KeyHandler, [{
+    key: "getAction",
+    value: function getAction() {
+      var keys = this.getKeys();
+      keys = keys.sort().join(' ');
+      var actionKeys = Object.keys(this.actions);
+
+      for (var _i = 0, _actionKeys = actionKeys; _i < _actionKeys.length; _i++) {
+        var action = _actionKeys[_i];
+        var thisActionKeys = this.actions[action].sort().join(' ');
+        if (thisActionKeys === keys) return action;
+      }
+    }
+  }, {
+    key: "getKeys",
+    value: function getKeys() {
+      var keysDown = [];
+      var keys = Object.keys(this.keysDown);
+
+      for (var _i2 = 0, _keys = keys; _i2 < _keys.length; _i2++) {
+        var key = _keys[_i2];
+        if (this.keysDown[key]) keysDown.push(key);
+      }
+
+      return keysDown;
+    }
+  }, {
+    key: "keydown",
+    value: function keydown(event) {
+      this.keysDown.keydown(event);
+      var action = this.getAction();
+
+      try {
+        var func = this.on[action];
+        func();
+      } catch (error) {}
+    }
+  }, {
+    key: "keyup",
+    value: function keyup(event) {
+      this.keysDown.keyup(event);
+    }
+  }]);
+
+  return KeyHandler;
+}();
+
+var _default = KeyHandler;
+exports.default = _default;
+},{"./KeyMap":"KeyMap.js"}],"Canvas.js":[function(require,module,exports) {
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -1993,6 +2154,8 @@ var _layerDetailsController = _interopRequireDefault(require("./controllers/laye
 
 var _Point = _interopRequireDefault(require("./utils/Point"));
 
+var _KeyboardEvents = _interopRequireDefault(require("./KeyboardEvents"));
+
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
 function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
@@ -2003,6 +2166,8 @@ function _createClass(Constructor, protoProps, staticProps) { if (protoProps) _d
 
 var Canvas = /*#__PURE__*/function () {
   function Canvas(canvas) {
+    var _this = this;
+
     _classCallCheck(this, Canvas);
 
     this.element = canvas;
@@ -2022,16 +2187,43 @@ var Canvas = /*#__PURE__*/function () {
     this.modifiers = {
       altDown: false,
       shiftDown: false
+    }; // Initialize the keyboard handler
+
+    this.keyHandler = new _KeyboardEvents.default(); // Add functions to keys
+
+    this.keyHandler.on.delete = function () {
+      return _this.deleteLayer(_this.activeLayer);
+    };
+
+    this.keyHandler.on.duplicate = function () {
+      return _this.duplicateLayer(_this.activeLayer);
+    };
+
+    this.keyHandler.on.group = function () {
+      return _this.makeGroupPermanant();
+    };
+
+    this.keyHandler.on.groupingMode = function () {
+      return _this.changeEditMode('grouping');
+    };
+
+    this.keyHandler.on.layerForward = function () {
+      return _this.moveActiveLayerForward();
+    };
+
+    this.keyHandler.on.layerBackward = function () {
+      return _this.moveActiveLayerBackward();
     }; // BINDINGS ///////////////////////
 
-    this.keydown = this.keydown.bind(this);
+
+    this.addLayer = this.addLayer.bind(this);
+    this.addTempGroup = this.addTempGroup.bind(this);
+    this.duplicateLayer = this.duplicateLayer.bind(this);
     this.keyup = this.keyup.bind(this);
     this.makeActiveLayer = this.makeActiveLayer.bind(this);
     this.mousedown = this.mousedown.bind(this);
     this.mouseup = this.mouseup.bind(this);
     this.mousemove = this.mousemove.bind(this);
-    this.addTempGroup = this.addTempGroup.bind(this);
-    this.addLayer = this.addLayer.bind(this);
     this.updateLayerDetails = this.updateLayerDetails.bind(this);
     canvas.addEventListener('mousedown', this.mousedown);
     canvas.addEventListener('mouseup', this.mouseup);
@@ -2079,6 +2271,11 @@ var Canvas = /*#__PURE__*/function () {
       return group;
     }
   }, {
+    key: "changeEditMode",
+    value: function changeEditMode(mode) {
+      this.editMode = mode;
+    }
+  }, {
     key: "clearActiveLayer",
     value: function clearActiveLayer() {
       // Make the layer in layers panel inactive
@@ -2095,13 +2292,13 @@ var Canvas = /*#__PURE__*/function () {
   }, {
     key: "deleteLayer",
     value: function deleteLayer(layer) {
-      var _this = this;
+      var _this2 = this;
 
       // If layer is group, delete all containing layers before deleting the group
       if (layer.type === 'group') {
         var layers = layer.getLayers();
         layers.forEach(function (curLayer) {
-          _this.layers.remove(curLayer); // Remove from layers panel
+          _this2.layers.remove(curLayer); // Remove from layers panel
 
 
           curLayer.remove(); // Remove layer shape
@@ -2117,51 +2314,13 @@ var Canvas = /*#__PURE__*/function () {
       this.updateLayerDetails();
     }
   }, {
-    key: "keydown",
-    value: function keydown(event) {
-      switch (event.keyCode) {
-        // shift
-        case 16:
-          this.modifiers.shiftDown = true;
-          this.editMode = 'grouping';
-          break;
-        // alt
-
-        case 18:
-          this.modifiers.altDown = true;
-          break;
-        // delete
-
-        case 46 || 8:
-          this.deleteLayer(this.activeLayer);
-          break;
-        // up
-
-        case 38:
-          this.layers.moveLayerForward(this.activeLayer);
-          this.activeLayer.update();
-          break;
-        // down
-
-        case 40:
-          this.layers.moveLayerBackward(this.activeLayer);
-          this.activeLayer.update();
-          break;
-
-        case 68:
-          var newLayer = this.layers.duplicate(this.activeLayer, this.id);
-          newLayer.add(this.element);
-          this.makeActiveLayer(newLayer);
-          this.transformHelper.set(newLayer);
-          this.id++;
-          break;
-
-        case 71:
-          if (this.activeLayer.temp && this.activeLayer.type === 'group') this.addGroup(this.activeLayer);
-
-        default:
-          break;
-      }
+    key: "duplicateLayer",
+    value: function duplicateLayer(layer) {
+      var newLayer = this.layers.duplicate(layer, this.id);
+      newLayer.add(this.element);
+      this.makeActiveLayer(newLayer);
+      this.transformHelper.set(newLayer);
+      this.id++;
     }
   }, {
     key: "keyup",
@@ -2186,7 +2345,7 @@ var Canvas = /*#__PURE__*/function () {
   }, {
     key: "makeActiveLayer",
     value: function makeActiveLayer(object) {
-      var _this2 = this;
+      var _this3 = this;
 
       // Update group bounds first
       if (object.type === 'group') object.updateGroupBounds(); // Make the shape on canvas active
@@ -2205,11 +2364,16 @@ var Canvas = /*#__PURE__*/function () {
       if (object.type === 'group' && object.temp) {
         var layers = object.getLayers();
         layers.forEach(function (layer) {
-          return _this2.layers.makeActive(layer);
+          return _this3.layers.makeActive(layer);
         });
       }
 
       this.updateLayerDetails();
+    }
+  }, {
+    key: "makeGroupPermanant",
+    value: function makeGroupPermanant() {
+      if (this.activeLayer.temp && this.activeLayer.type === 'group') this.addGroup(this.activeLayer);
     }
   }, {
     key: "mousedown",
@@ -2249,17 +2413,21 @@ var Canvas = /*#__PURE__*/function () {
 
 
         if (event.target.classList.contains('anchor')) {
-          if (this.modifiers.altDown) {
-            this.editMode = 'rotate';
-          } else {
-            this.editMode = 'resize';
-          } // Set global transform origin to correct position
+          this.editMode = 'resize'; // Set global transform origin to correct position
 
+          this.setTransformOrigin(event);
+        } // Change mode when clicking rotate
+
+
+        var rotateIcon = event.target.closest('.rotate-icon');
+
+        if (rotateIcon) {
+          this.editMode = 'rotate'; // Set global transform origin to correct position
 
           this.setTransformOrigin(event); // Get the rotation angle of initial click
 
           this.drawStartAngle = rotationAngle(this.transformOrigin.x, this.transformOrigin.y, this.mousePosition.x, this.mousePosition.y);
-          this.drawStartShapeRotation = this.activeLayer.rotation;
+          this.drawStartShapeRotation = this.activeLayer.getRotation();
         }
       }
 
@@ -2339,6 +2507,18 @@ var Canvas = /*#__PURE__*/function () {
       }
     }
   }, {
+    key: "moveActiveLayerForward",
+    value: function moveActiveLayerForward() {
+      this.layers.moveLayerForward(this.activeLayer);
+      this.activeLayer.update();
+    }
+  }, {
+    key: "moveActiveLayerBackward",
+    value: function moveActiveLayerBackward() {
+      this.layers.moveLayerBackward(this.activeLayer);
+      this.activeLayer.update();
+    }
+  }, {
     key: "relativeMousePosition",
     value: function relativeMousePosition() {
       return {
@@ -2395,9 +2575,9 @@ var Canvas = /*#__PURE__*/function () {
     value: function setTransformOrigin(event) {
       var activeLayer = this.activeLayer.getProperties();
       var classes = event.target.classList;
-      var x, y; // MODIFIERS
+      var x, y; // Rotation
 
-      if (this.modifiers.altDown) {
+      if (this.editMode === 'rotate') {
         x = activeLayer.left + activeLayer.width / 2;
         y = activeLayer.top + activeLayer.height / 2;
         activeLayer.setTransformOrigin(x, y);
@@ -2462,7 +2642,7 @@ function rotationAngle(cx, cy, ex, ey) {
 
 var _default = Canvas;
 exports.default = _default;
-},{"./TransformHelper":"TransformHelper.js","./controllers/shapeController":"controllers/shapeController.js","./controllers/groupController":"controllers/groupController.js","./controllers/layersController":"controllers/layersController.js","./controllers/layerDetailsController":"controllers/layerDetailsController.js","./utils/Point":"utils/Point.js"}],"views/customSelect.js":[function(require,module,exports) {
+},{"./TransformHelper":"TransformHelper.js","./controllers/shapeController":"controllers/shapeController.js","./controllers/groupController":"controllers/groupController.js","./controllers/layersController":"controllers/layersController.js","./controllers/layerDetailsController":"controllers/layerDetailsController.js","./utils/Point":"utils/Point.js","./KeyboardEvents":"KeyboardEvents.js"}],"views/customSelect.js":[function(require,module,exports) {
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -2557,8 +2737,6 @@ var App = /*#__PURE__*/function () {
         var thisLayer = this.canvas.layers.getLayerById(id);
         if (thisLayer) this.canvas.makeActiveLayer(thisLayer);
       }
-
-      console.log(event.target);
     }
   }, {
     key: "mouseup",
@@ -2617,6 +2795,14 @@ actionBtns.forEach(function (btn) {
     var button = event.target.closest('button');
 
     switch (button.getAttribute('data-action')) {
+      case 'group':
+        app.canvas.makeGroupPermanant(app.canvas.activeLayer);
+        break;
+
+      case 'ungroup':
+        // app.canvas.layers.moveLayerToFront(app.canvas.activeLayer);
+        break;
+
       case 'layer-front':
         app.canvas.layers.moveLayerToFront(app.canvas.activeLayer);
         break;
@@ -2672,7 +2858,7 @@ var parent = module.bundle.parent;
 if ((!parent || !parent.isParcelRequire) && typeof WebSocket !== 'undefined') {
   var hostname = "" || location.hostname;
   var protocol = location.protocol === 'https:' ? 'wss' : 'ws';
-  var ws = new WebSocket(protocol + '://' + hostname + ':' + "49940" + '/');
+  var ws = new WebSocket(protocol + '://' + hostname + ':' + "49775" + '/');
 
   ws.onmessage = function (event) {
     checkedAssets = {};

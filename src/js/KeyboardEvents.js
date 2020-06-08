@@ -1,64 +1,65 @@
-class ModifierKeys {
+import KeyMap from './KeyMap';
+
+class KeyHandler {
   constructor() {
-    this.alt = false;
-    this.shift = false;
-    this.delete = false;
-    this.up = false;
-    this.down = false;
-    this.d = false;
+    this.keysDown = new KeyMap();
+    this.actions = {
+      delete: ['delete'],
+      duplicate: ['control', 'd'],
+      group: ['control', 'g'],
+      groupingMode: ['shift'],
+      layerForward: ['arrowup'],
+      layerBackward: ['arrowdown'],
+      layerToFront: ['control', 'arrowup'],
+      layerToBack: ['control', 'arrowdown'],
+    };
+    this.on = {};
+
+    this.getAction = this.getAction.bind(this);
+    this.getKeys = this.getKeys.bind(this);
     this.keydown = this.keydown.bind(this);
+    this.keyup = this.keyup.bind(this);
 
     document.addEventListener('keydown', this.keydown);
+    document.addEventListener('keyup', this.keyup);
+  }
+
+  getAction() {
+    let keys = this.getKeys();
+
+    keys = keys.sort().join(' ');
+    let actionKeys = Object.keys(this.actions);
+
+    for (let action of actionKeys) {
+      let thisActionKeys = this.actions[action].sort().join(' ');
+      if (thisActionKeys === keys) return action;
+    }
+  }
+
+  getKeys() {
+    let keysDown = [];
+    let keys = Object.keys(this.keysDown);
+
+    for (let key of keys) {
+      if (this.keysDown[key]) keysDown.push(key);
+    }
+
+    return keysDown;
   }
 
   keydown(event) {
-    switch (event.keyCode) {
-      // shift
-      case 16:
-        this.shift = true;
-        break;
-      // alt
-      case 18:
-        this.alt = true;
-        break;
-      // up
-      case 38:
-        this.up = true;
-        break;
-      // down
-      case 40:
-        this.down = true;
-        break;
-      // delete
-      case 46 || 8:
-        this.delete = true;
-        break;
-      case 68:
-        const newLayer = this.layers.duplicate(this.activeLayer, this.id);
-        newLayer.add(this.element);
-        this.makeActiveLayer(newLayer);
-        this.transformHelper.set(newLayer);
-        this.id++;
-        break;
-      default:
-        break;
-    }
+    this.keysDown.keydown(event);
+    let action = this.getAction();
+
+    try {
+      let func = this.on[action];
+      func();
+    } catch (error) {}
   }
 
   keyup(event) {
-    switch (event.keyCode) {
-      // alt
-      case 18:
-        this.modifiers.altDown = false;
-        this.editMode = 'select';
-        break;
-      // shift
-      case 16:
-        this.modifiers.shiftDown = false;
-        this.editMode = 'select';
-        break;
-      default:
-        break;
-    }
+    this.keysDown.keyup(event);
   }
 }
+
+export default KeyHandler;

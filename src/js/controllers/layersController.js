@@ -82,7 +82,7 @@ class LayersPanel {
 
   remove(layer) {
     this.model.remove(layer.model);
-    this.view.remove(layer.model);
+    this.view.remove(layer);
   }
 
   setGroupPermanant(group) {

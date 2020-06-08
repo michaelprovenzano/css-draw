@@ -22,7 +22,7 @@ class LayerView {
   remove() {
     let element = document.getElementById(this.element.id);
 
-    if (element) this.element.parentNode.removeChild(this.element);
+    if (element) this.element.parentNode.removeChild(element);
     return null;
   }
 

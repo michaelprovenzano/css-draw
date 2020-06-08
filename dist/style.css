@@ -239,6 +239,35 @@ h6 {
     justify-content: center;
     padding-right: 16px; }
 
+.edit .rotate-icon {
+  display: inline-block !important; }
+
+.rotate-icon {
+  display: none !important;
+  position: absolute;
+  z-index: -10;
+  opacity: 0; }
+  .rotate-icon:hover {
+    opacity: 1; }
+  .rotate-icon.top-left {
+    top: -10px;
+    left: -10px;
+    transform: translate(-50%, -50%); }
+  .rotate-icon.bottom-left {
+    top: calc(100% + 10px);
+    left: -10px;
+    transform: translate(-50%, -50%) rotate(-90deg); }
+  .rotate-icon.bottom-right {
+    top: calc(100% + 10px);
+    left: calc(100% + 10px);
+    transform: translate(-50%, -50%) rotate(-180deg); }
+  .rotate-icon.top-right {
+    top: -10px;
+    left: calc(100% + 10px);
+    transform: translate(-50%, -50%) rotate(-270deg); }
+  .rotate-icon.corner {
+    border-radius: 50%; }
+
 body {
   width: 100%;
   height: 100vh;

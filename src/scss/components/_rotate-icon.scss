@@ -1,0 +1,44 @@
+$rotate-icon-distance: 10px;
+
+.edit .rotate-icon {
+  display: inline-block !important;
+}
+
+.rotate-icon {
+  display: none !important;
+  position: absolute;
+  z-index: -10;
+  opacity: 0;
+
+  &:hover {
+    opacity: 1;
+  }
+
+  &.top-left {
+    top: -$rotate-icon-distance;
+    left: -$rotate-icon-distance;
+    transform: translate(-50%, -50%);
+  }
+
+  &.bottom-left {
+    top: calc(100% + #{$rotate-icon-distance});
+    left: -$rotate-icon-distance;
+    transform: translate(-50%, -50%) rotate(-90deg);
+  }
+
+  &.bottom-right {
+    top: calc(100% + #{$rotate-icon-distance});
+    left: calc(100% + #{$rotate-icon-distance});
+    transform: translate(-50%, -50%) rotate(-180deg);
+  }
+
+  &.top-right {
+    top: -$rotate-icon-distance;
+    left: calc(100% + #{$rotate-icon-distance});
+    transform: translate(-50%, -50%) rotate(-270deg);
+  }
+
+  &.corner {
+    border-radius: 50%;
+  }
+}

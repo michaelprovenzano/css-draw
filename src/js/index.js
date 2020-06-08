@@ -30,7 +30,6 @@ class App {
       let thisLayer = this.canvas.layers.getLayerById(id);
       if (thisLayer) this.canvas.makeActiveLayer(thisLayer);
     }
-    console.log(event.target);
   }
 
   mouseup(event) {}
@@ -81,6 +80,12 @@ actionBtns.forEach(btn =>
     const button = event.target.closest('button');
 
     switch (button.getAttribute('data-action')) {
+      case 'group':
+        app.canvas.makeGroupPermanant(app.canvas.activeLayer);
+        break;
+      case 'ungroup':
+        // app.canvas.layers.moveLayerToFront(app.canvas.activeLayer);
+        break;
       case 'layer-front':
         app.canvas.layers.moveLayerToFront(app.canvas.activeLayer);
         break;

@@ -44,6 +44,10 @@ class Layer {
     return this.model;
   }
 
+  getRotation() {
+    return this.model.rotation;
+  }
+
   getTransformOrigin() {
     return this.model.transformOrigin;
   }

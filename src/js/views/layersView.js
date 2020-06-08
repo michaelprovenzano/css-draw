@@ -214,8 +214,6 @@ class LayersPanelView {
   }
 
   nestElement(target, thisEl) {
-    console.log(target);
-
     if (target.getAttribute('data-list-component') === 'group-name') {
       target.nextElementSibling.insertAdjacentElement('beforeend', thisEl);
     } else if (target.getAttribute('data-list-component') === 'group') {
@@ -251,7 +249,7 @@ class LayersPanelView {
     const layerEl = this.getLayerElementById(layer.id);
     if (!layerEl) return;
 
-    if (layer.type === 'group') {
+    if (layer.type === 'group' && !layer.temp) {
       layerEl.parentNode.parentNode.removeChild(layerEl.parentNode);
     } else {
       layerEl.parentNode.removeChild(layerEl);

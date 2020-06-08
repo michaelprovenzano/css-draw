@@ -4,6 +4,7 @@ import Group from './controllers/groupController';
 import Layers from './controllers/layersController';
 import LayerDetails from './controllers/layerDetailsController';
 import Point from './utils/Point';
+import KeyHandler from './KeyboardEvents';
 
 class Canvas {
   constructor(canvas) {
@@ -26,15 +27,26 @@ class Canvas {
       shiftDown: false,
     };
 
+    // Initialize the keyboard handler
+    this.keyHandler = new KeyHandler();
+
+    // Add functions to keys
+    this.keyHandler.on.delete = () => this.deleteLayer(this.activeLayer);
+    this.keyHandler.on.duplicate = () => this.duplicateLayer(this.activeLayer);
+    this.keyHandler.on.group = () => this.makeGroupPermanant();
+    this.keyHandler.on.groupingMode = () => this.changeEditMode('grouping');
+    this.keyHandler.on.layerForward = () => this.moveActiveLayerForward();
+    this.keyHandler.on.layerBackward = () => this.moveActiveLayerBackward();
+
     // BINDINGS ///////////////////////
-    this.keydown = this.keydown.bind(this);
+    this.addLayer = this.addLayer.bind(this);
+    this.addTempGroup = this.addTempGroup.bind(this);
+    this.duplicateLayer = this.duplicateLayer.bind(this);
     this.keyup = this.keyup.bind(this);
     this.makeActiveLayer = this.makeActiveLayer.bind(this);
     this.mousedown = this.mousedown.bind(this);
     this.mouseup = this.mouseup.bind(this);
     this.mousemove = this.mousemove.bind(this);
-    this.addTempGroup = this.addTempGroup.bind(this);
-    this.addLayer = this.addLayer.bind(this);
     this.updateLayerDetails = this.updateLayerDetails.bind(this);
 
     canvas.addEventListener('mousedown', this.mousedown);
@@ -83,6 +95,10 @@ class Canvas {
     return group;
   }
 
+  changeEditMode(mode) {
+    this.editMode = mode;
+  }
+
   clearActiveLayer() {
     // Make the layer in layers panel inactive
     this.layers.makeAllInactive();
@@ -113,48 +129,17 @@ class Canvas {
     this.layers.remove(layer); // Remove from layers panel
     this.activeLayer.remove(); // Remove layer shape
     this.activeLayer = undefined;
+
     this.transformHelper.remove();
     this.updateLayerDetails();
   }
 
-  keydown(event) {
-    switch (event.keyCode) {
-      // shift
-      case 16:
-        this.modifiers.shiftDown = true;
-        this.editMode = 'grouping';
-        break;
-      // alt
-      case 18:
-        this.modifiers.altDown = true;
-        break;
-      // delete
-      case 46 || 8:
-        this.deleteLayer(this.activeLayer);
-        break;
-      // up
-      case 38:
-        this.layers.moveLayerForward(this.activeLayer);
-        this.activeLayer.update();
-        break;
-      // down
-      case 40:
-        this.layers.moveLayerBackward(this.activeLayer);
-        this.activeLayer.update();
-        break;
-      case 68:
-        const newLayer = this.layers.duplicate(this.activeLayer, this.id);
-        newLayer.add(this.element);
-        this.makeActiveLayer(newLayer);
-        this.transformHelper.set(newLayer);
-        this.id++;
-        break;
-      case 71:
-        if (this.activeLayer.temp && this.activeLayer.type === 'group')
-          this.addGroup(this.activeLayer);
-      default:
-        break;
-    }
+  duplicateLayer(layer) {
+    const newLayer = this.layers.duplicate(layer, this.id);
+    newLayer.add(this.element);
+    this.makeActiveLayer(newLayer);
+    this.transformHelper.set(newLayer);
+    this.id++;
   }
 
   keyup(event) {
@@ -199,6 +184,10 @@ class Canvas {
     this.updateLayerDetails();
   }
 
+  makeGroupPermanant() {
+    if (this.activeLayer.temp && this.activeLayer.type === 'group') this.addGroup(this.activeLayer);
+  }
+
   mousedown(event) {
     this.isMouseDown = true;
 
@@ -240,11 +229,16 @@ class Canvas {
 
       // Change mode when clicking anchor
       if (event.target.classList.contains('anchor')) {
-        if (this.modifiers.altDown) {
-          this.editMode = 'rotate';
-        } else {
-          this.editMode = 'resize';
-        }
+        this.editMode = 'resize';
+
+        // Set global transform origin to correct position
+        this.setTransformOrigin(event);
+      }
+
+      // Change mode when clicking rotate
+      let rotateIcon = event.target.closest('.rotate-icon');
+      if (rotateIcon) {
+        this.editMode = 'rotate';
 
         // Set global transform origin to correct position
         this.setTransformOrigin(event);
@@ -256,7 +250,8 @@ class Canvas {
           this.mousePosition.x,
           this.mousePosition.y
         );
-        this.drawStartShapeRotation = this.activeLayer.rotation;
+
+        this.drawStartShapeRotation = this.activeLayer.getRotation();
       }
     }
     if (this.mode === 'edit' && this.editMode === 'grouping') {
@@ -339,6 +334,16 @@ class Canvas {
     }
   }
 
+  moveActiveLayerForward() {
+    this.layers.moveLayerForward(this.activeLayer);
+    this.activeLayer.update();
+  }
+
+  moveActiveLayerBackward() {
+    this.layers.moveLayerBackward(this.activeLayer);
+    this.activeLayer.update();
+  }
+
   relativeMousePosition() {
     return {
       x: this.mousePosition.x - this.activeLayer.left,
@@ -397,8 +402,8 @@ class Canvas {
     const classes = event.target.classList;
     let x, y;
 
-    // MODIFIERS
-    if (this.modifiers.altDown) {
+    // Rotation
+    if (this.editMode === 'rotate') {
       x = activeLayer.left + activeLayer.width / 2;
       y = activeLayer.top + activeLayer.height / 2;
 

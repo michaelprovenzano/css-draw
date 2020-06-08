@@ -16,11 +16,6 @@ class GroupView extends LayerView {
 
     return this;
   }
-
-  remove() {
-    this.element.parentNode.removeChild(this.element);
-    return null;
-  }
 }
 
 export default GroupView;
