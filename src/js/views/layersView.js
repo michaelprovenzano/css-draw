@@ -240,6 +240,18 @@ class LayersPanelView {
     }
   }
 
+  unNestElement(layer) {
+    const layerEl = this.getLayerElementById(layer.id);
+    if (!layerEl) return;
+
+    layerEl.parentNode.parentNode.parentNode.insertAdjacentElement('beforeend', layerEl);
+  }
+
+  unNestAllElements(group) {
+    const layers = group.getLayers();
+    layers.forEach(layer => this.unNestElement(layer));
+  }
+
   recalculateChildren() {
     // Must re-index children to reset correct position
     this.children = flattenChildren([...this.element.children]);

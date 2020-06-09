@@ -12,6 +12,7 @@ class KeyHandler {
       layerBackward: ['arrowdown'],
       layerToFront: ['control', 'arrowup'],
       layerToBack: ['control', 'arrowdown'],
+      ungroup: ['shift', 'g'],
     };
 
     // If a keypress combination matches an action it will be added to the on handler.

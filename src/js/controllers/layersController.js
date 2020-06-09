@@ -104,6 +104,15 @@ class LayersPanel {
         this.view.nestElement(parent, child);
       });
   }
+
+  unGroupAllLayers(group) {
+    this.view.unNestAllElements(group);
+
+    group.unGroupAllLayers();
+    this.remove(group);
+  }
+
+  unGroupLayer(layer) {}
 }
 
 export default LayersPanel;

@@ -37,6 +37,7 @@ class Canvas {
     this.keyHandler.on.groupingMode = () => this.changeEditMode('grouping');
     this.keyHandler.on.layerForward = () => this.moveActiveLayerForward();
     this.keyHandler.on.layerBackward = () => this.moveActiveLayerBackward();
+    this.keyHandler.on.ungroup = () => this.unGroupAllLayers(this.activeLayer);
 
     // BINDINGS ///////////////////////
     this.addLayer = this.addLayer.bind(this);
@@ -438,6 +439,11 @@ class Canvas {
     activeLayer.setTransformOrigin(x, y);
     this.transformOrigin = new Point(x, y);
     this.transformHelper.update();
+  }
+
+  unGroupAllLayers(group) {
+    this.layers.unGroupAllLayers(group);
+    this.transformHelper.remove();
   }
 
   updateLayerDetails() {

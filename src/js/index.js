@@ -78,25 +78,26 @@ const actionBtns = [...document.querySelectorAll('.btn-action')];
 actionBtns.forEach(btn =>
   btn.addEventListener('click', function (event) {
     const button = event.target.closest('button');
+    let activeLayer = app.canvas.activeLayer;
 
     switch (button.getAttribute('data-action')) {
       case 'group':
-        app.canvas.makeGroupPermanant(app.canvas.activeLayer);
+        app.canvas.makeGroupPermanant(activeLayer);
         break;
       case 'ungroup':
-        // app.canvas.layers.moveLayerToFront(app.canvas.activeLayer);
+        app.canvas.unGroupAllLayers(activeLayer);
         break;
       case 'layer-front':
-        app.canvas.layers.moveLayerToFront(app.canvas.activeLayer);
+        app.canvas.layers.moveLayerToFront(activeLayer);
         break;
       case 'layer-forward':
-        app.canvas.layers.moveLayerForward(app.canvas.activeLayer);
+        app.canvas.layers.moveLayerForward(activeLayer);
         break;
       case 'layer-backward':
-        app.canvas.layers.moveLayerBackward(app.canvas.activeLayer);
+        app.canvas.layers.moveLayerBackward(activeLayer);
         break;
       case 'layer-back':
-        app.canvas.layers.moveLayerToBack(app.canvas.activeLayer);
+        app.canvas.layers.moveLayerToBack(activeLayer);
         break;
       default:
         break;

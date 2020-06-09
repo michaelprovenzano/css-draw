@@ -61,6 +61,11 @@ class Group extends LayerController {
     this.updateLayers();
   }
 
+  unGroupAllLayers() {
+    this.model.unGroupAllLayers();
+    this.view.remove();
+  }
+
   unGroupLayer(layer) {
     this.model.unGroupLayer(layer);
   }

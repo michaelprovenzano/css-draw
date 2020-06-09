@@ -942,6 +942,11 @@ var GroupModel = /*#__PURE__*/function (_LayerModel) {
       this.layers.splice(index, 1);
     }
   }, {
+    key: "unGroupAllLayers",
+    value: function unGroupAllLayers() {
+      this.layers = [];
+    }
+  }, {
     key: "updateLayers",
     value: function updateLayers() {
       var _this6 = this;
@@ -1012,7 +1017,7 @@ var GroupView = /*#__PURE__*/function (_LayerView) {
     key: "add",
     value: function add(parent, groupObj) {
       this.parent = parent;
-      var element = "<".concat(groupObj.tag, " class=\"shape\" id=\"for-").concat(groupObj.id, "\" style=\"top:").concat(groupObj.top, "px; left:").concat(groupObj.left, "px; width:").concat(groupObj.width, "px; height:").concat(groupObj.height, "px; pointer-events:none; background:").concat(groupObj.backgroundColor, "; z-index:").concat(groupObj.zIndex, "\"></").concat(groupObj.tag, ">");
+      var element = "<".concat(groupObj.tag, " class=\"shape\" id=\"").concat(groupObj.id, "\" style=\"top:").concat(groupObj.top, "px; left:").concat(groupObj.left, "px; width:").concat(groupObj.width, "px; height:").concat(groupObj.height, "px; pointer-events:none; background:").concat(groupObj.backgroundColor, "; z-index:").concat(groupObj.zIndex, "\"></").concat(groupObj.tag, ">");
       this.parent.insertAdjacentHTML('beforeend', element);
       this.element = this.parent.lastElementChild;
       return this;
@@ -1130,6 +1135,12 @@ var Group = /*#__PURE__*/function (_LayerController) {
       this.model.setLayerSizes();
       this.model.setLayerPositions();
       this.updateLayers();
+    }
+  }, {
+    key: "unGroupAllLayers",
+    value: function unGroupAllLayers() {
+      this.model.unGroupAllLayers();
+      this.view.remove();
     }
   }, {
     key: "unGroupLayer",
@@ -1583,6 +1594,23 @@ var LayersPanelView = /*#__PURE__*/function () {
       }
     }
   }, {
+    key: "unNestElement",
+    value: function unNestElement(layer) {
+      var layerEl = this.getLayerElementById(layer.id);
+      if (!layerEl) return;
+      layerEl.parentNode.parentNode.parentNode.insertAdjacentElement('beforeend', layerEl);
+    }
+  }, {
+    key: "unNestAllElements",
+    value: function unNestAllElements(group) {
+      var _this = this;
+
+      var layers = group.getLayers();
+      layers.forEach(function (layer) {
+        return _this.unNestElement(layer);
+      });
+    }
+  }, {
     key: "recalculateChildren",
     value: function recalculateChildren() {
       // Must re-index children to reset correct position
@@ -1806,6 +1834,16 @@ var LayersPanel = /*#__PURE__*/function () {
         _this.view.nestElement(parent, child);
       });
     }
+  }, {
+    key: "unGroupAllLayers",
+    value: function unGroupAllLayers(group) {
+      this.view.unNestAllElements(group);
+      group.unGroupAllLayers();
+      this.remove(group);
+    }
+  }, {
+    key: "unGroupLayer",
+    value: function unGroupLayer(layer) {}
   }]);
 
   return LayersPanel;
@@ -2074,7 +2112,8 @@ var KeyHandler = /*#__PURE__*/function () {
       layerForward: ['arrowup'],
       layerBackward: ['arrowdown'],
       layerToFront: ['control', 'arrowup'],
-      layerToBack: ['control', 'arrowdown']
+      layerToBack: ['control', 'arrowdown'],
+      ungroup: ['shift', 'g']
     }; // If a keypress combination matches an action it will be added to the on handler.
     // This handler can be assigned functions like so:
     // keyHandler.on.delete = function();
@@ -2216,6 +2255,10 @@ var Canvas = /*#__PURE__*/function () {
 
     this.keyHandler.on.layerBackward = function () {
       return _this.moveActiveLayerBackward();
+    };
+
+    this.keyHandler.on.ungroup = function () {
+      return _this.unGroupAllLayers(_this.activeLayer);
     }; // BINDINGS ///////////////////////
 
 
@@ -2618,6 +2661,12 @@ var Canvas = /*#__PURE__*/function () {
       this.transformHelper.update();
     }
   }, {
+    key: "unGroupAllLayers",
+    value: function unGroupAllLayers(group) {
+      this.layers.unGroupAllLayers(group);
+      this.transformHelper.remove();
+    }
+  }, {
     key: "updateLayerDetails",
     value: function updateLayerDetails() {
       // Put the active layer in the layer details panel
@@ -2798,30 +2847,31 @@ var actionBtns = _toConsumableArray(document.querySelectorAll('.btn-action'));
 actionBtns.forEach(function (btn) {
   return btn.addEventListener('click', function (event) {
     var button = event.target.closest('button');
+    var activeLayer = app.canvas.activeLayer;
 
     switch (button.getAttribute('data-action')) {
       case 'group':
-        app.canvas.makeGroupPermanant(app.canvas.activeLayer);
+        app.canvas.makeGroupPermanant(activeLayer);
         break;
 
       case 'ungroup':
-        // app.canvas.layers.moveLayerToFront(app.canvas.activeLayer);
+        app.canvas.unGroupAllLayers(activeLayer);
         break;
 
       case 'layer-front':
-        app.canvas.layers.moveLayerToFront(app.canvas.activeLayer);
+        app.canvas.layers.moveLayerToFront(activeLayer);
         break;
 
       case 'layer-forward':
-        app.canvas.layers.moveLayerForward(app.canvas.activeLayer);
+        app.canvas.layers.moveLayerForward(activeLayer);
         break;
 
       case 'layer-backward':
-        app.canvas.layers.moveLayerBackward(app.canvas.activeLayer);
+        app.canvas.layers.moveLayerBackward(activeLayer);
         break;
 
       case 'layer-back':
-        app.canvas.layers.moveLayerToBack(app.canvas.activeLayer);
+        app.canvas.layers.moveLayerToBack(activeLayer);
         break;
 
       default:
@@ -2863,7 +2913,7 @@ var parent = module.bundle.parent;
 if ((!parent || !parent.isParcelRequire) && typeof WebSocket !== 'undefined') {
   var hostname = "" || location.hostname;
   var protocol = location.protocol === 'https:' ? 'wss' : 'ws';
-  var ws = new WebSocket(protocol + '://' + hostname + ':' + "49775" + '/');
+  var ws = new WebSocket(protocol + '://' + hostname + ':' + "50842" + '/');
 
   ws.onmessage = function (event) {
     checkedAssets = {};

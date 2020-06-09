@@ -108,6 +108,10 @@ class GroupModel extends LayerModel {
     this.layers.splice(index, 1);
   }
 
+  unGroupAllLayers() {
+    this.layers = [];
+  }
+
   updateLayers() {
     // Loop through layers
     this.layers.forEach((layer, i) => {
