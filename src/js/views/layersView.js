@@ -249,7 +249,10 @@ class LayersPanelView {
 
   unNestAllElements(group) {
     const layers = group.getLayers();
-    layers.forEach(layer => this.unNestElement(layer));
+    for (let i = layers.length - 1; i >= 0; i--) {
+      let layer = layers[i];
+      this.unNestElement(layer);
+    }
   }
 
   recalculateChildren() {
@@ -296,12 +299,30 @@ class LayersPanelView {
 
   moveLayerForward(layer) {
     let thisLayer = this.getLayerElementById(layer.id);
+    if (layer.type === 'group') thisLayer = thisLayer.parentElement;
+
     thisLayer.previousSibling.insertAdjacentElement('beforebegin', thisLayer);
   }
 
   moveLayerBackward(layer) {
     let thisLayer = this.getLayerElementById(layer.id);
+    if (layer.type === 'group') thisLayer = thisLayer.parentElement;
+
     thisLayer.nextElementSibling.insertAdjacentElement('afterend', thisLayer);
+  }
+
+  moveLayerToFront(layer) {
+    let thisLayer = this.getLayerElementById(layer.id);
+    if (layer.type === 'group') thisLayer = thisLayer.parentElement;
+
+    this.element.insertAdjacentElement('afterbegin', thisLayer);
+  }
+
+  moveLayerToBack(layer) {
+    let thisLayer = this.getLayerElementById(layer.id);
+    if (layer.type === 'group') thisLayer = thisLayer.parentElement;
+
+    this.element.insertAdjacentElement('beforeend', thisLayer);
   }
 
   setHoverPosition(event) {

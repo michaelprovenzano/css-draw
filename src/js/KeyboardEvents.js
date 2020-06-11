@@ -65,6 +65,10 @@ class KeyHandler {
   keyup(event) {
     this.keysDown.keyup(event);
   }
+
+  setAction(action, keysArray) {
+    this.actions[action] = keysArray;
+  }
 }
 
 export default KeyHandler;

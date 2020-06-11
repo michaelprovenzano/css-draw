@@ -2,8 +2,11 @@ import Shape from '../controllers/shapeController';
 
 class Layers {
   constructor(layers) {
+    // A nested layer structure
     this.layers = layers || [];
-    this.updates = {};
+
+    // A flattened layer structure
+    this.allLayers = layers || [];
 
     // Bindings //
     this.add = this.add.bind(this);
@@ -17,6 +20,7 @@ class Layers {
   add(layerObject) {
     layerObject.model.zIndex = this.layers.length;
     this.layers.push(layerObject);
+    this.allLayers.push(layerObject);
   }
 
   duplicate(layerObject, newId) {
@@ -34,18 +38,33 @@ class Layers {
     return newLayer;
   }
 
-  includes(layer) {
-    return this.layers.includes(layer);
+  flatten(layers) {
+    let flattened = [];
+    layers.map(layer => {
+      flattened.push(layer);
+
+      if (layer.type === 'group') {
+        let nested = this.flatten(layer.getLayers());
+        flattened = flattened.concat(...nested);
+      }
+    });
+
+    return flattened;
+  }
+
+  flattenLayers() {
+    return this.flatten(this.layers);
   }
 
   getLayerById(id) {
-    return this.layers.find(layer => layer.model.id === parseInt(id));
+    return this.allLayers.find(layer => layer.model.id === parseInt(id));
   }
 
-  getLayerIndex(object) {
+  getLayerIndex(object, array) {
     let index = -1;
-    for (let i = 0; i < this.layers.length; i++) {
-      let layer = this.layers[i];
+    if (!array) array = this.layers;
+    for (let i = 0; i < array.length; i++) {
+      let layer = array[i];
       if (layer.id === object.id) {
         index = i;
         break;
@@ -54,38 +73,56 @@ class Layers {
     return index;
   }
 
+  groupLayer(layer) {
+    if (this.group) layer.unGroupLayer(layer);
+    let index = this.getLayerIndex(layer);
+    this.layers.splice(index, 1);
+  }
+
+  includes(layer) {
+    return this.layers.includes(layer);
+  }
+
   makeAllInactive() {}
 
   moveLayerForward(layer) {
-    const index = this.getLayerIndex(layer);
-    if (index !== this.layers.length - 1) {
-      // Switch z-index values
-      this.layers[index].model.zIndex = index + 1;
-      this.layers[index + 1].model.zIndex = index;
+    if (layer.group) {
+      let group = layer.group;
+      group.moveLayerForward(layer);
+    } else {
+      const index = this.getLayerIndex(layer);
+      if (index !== this.layers.length - 1) {
+        // Switch z-index values
+        this.layers[index].model.zIndex = index + 1;
+        this.layers[index + 1].model.zIndex = index;
 
-      // Switch values in array
-      [this.layers[index + 1], this.layers[index]] = [this.layers[index], this.layers[index + 1]];
-
-      // Update both layers
-      this.layers[index].update();
-      this.layers[index + 1].update();
+        // Switch values in array
+        [this.layers[index + 1], this.layers[index]] = [this.layers[index], this.layers[index + 1]];
+      }
     }
+    this.setAllZIndexes();
   }
 
   moveLayerBackward(layer) {
-    const index = this.getLayerIndex(layer);
-    if (index !== 0) {
-      // Switch z-index values
-      this.layers[index - 1].model.zIndex = index;
-      this.layers[index].model.zIndex = index - 1;
+    // If the layer is nested in a group, let the group handle moving the layer
+    if (layer.group) {
+      let group = layer.group;
+      group.moveLayerBackward(layer);
+    } else {
+      // Get the index of the layer
+      const index = this.getLayerIndex(layer);
 
-      // Switch values in array
-      [this.layers[index - 1], this.layers[index]] = [this.layers[index], this.layers[index - 1]];
+      if (index > 0) {
+        // Switch z-index values
+        this.layers[index - 1].model.zIndex = index;
+        this.layers[index].model.zIndex = index - 1;
 
-      // Update both layers
-      this.layers[index].update();
-      this.layers[index - 1].update();
+        // Switch values in array
+        [this.layers[index - 1], this.layers[index]] = [this.layers[index], this.layers[index - 1]];
+      }
     }
+
+    this.setAllZIndexes();
   }
 
   moveLayerToFront(layer) {
@@ -94,10 +131,7 @@ class Layers {
     this.layers.splice(index, 1);
     this.layers.push(layer);
 
-    this.layers.forEach((layer, i) => {
-      layer.zIndex = i;
-      layer.update();
-    });
+    this.setAllZIndexes();
   }
 
   moveLayerToBack(layer) {
@@ -106,16 +140,47 @@ class Layers {
     this.layers.splice(index, 1);
     this.layers.unshift(layer);
 
-    this.layers.forEach((layer, i) => {
-      layer.zIndex = i;
+    this.setAllZIndexes();
+  }
+
+  unGroupAllLayers(group) {
+    // Get the layers from the group
+    let layers = group.getLayers();
+
+    // Set the group for each layer to null
+    layers.forEach(layer => (layer.group = null));
+
+    // Get the index of the group in the layers array
+    let index = this.getLayerIndex(group);
+
+    // Insert the layers into the layers array
+    this.layers.splice(index, 0, ...layers);
+
+    console.log(this.layers);
+  }
+
+  setAllZIndexes() {
+    // Flatten the groups to deterimine the layer order
+    let layers = this.flattenLayers();
+
+    // Set the index for each layer based on the order and update
+    layers.forEach((layer, i) => {
+      layer.setZIndex(i);
       layer.update();
     });
   }
 
   remove(object) {
-    if (this.group) object.unGroupLayer(object);
-    let index = this.getLayerIndex(object);
-    this.layers.splice(index, 1);
+    if (object.group) {
+      let group = object.group;
+      group.removeLayer(object);
+    } else {
+      let index = this.getLayerIndex(object);
+      this.layers.splice(index, 1);
+
+      index = this.getLayerIndex(object, this.allLayers);
+      this.allLayers.splice(index, 1);
+    }
   }
 
   updateAll() {

@@ -39,9 +39,22 @@ class Group extends LayerController {
     return this.model.getLayers();
   }
 
+  moveLayerBackward(layer) {
+    this.model.moveLayerBackward(layer);
+  }
+
+  moveLayerForward(layer) {
+    this.model.moveLayerForward(layer);
+  }
+
+  removeLayer(layer) {
+    this.model.removeLayer(layer);
+  }
+
   setPermanant() {
     this.visible = true;
     this.temp = false;
+    this.sortByZIndex();
   }
 
   setPosition(left, top) {
@@ -52,6 +65,14 @@ class Group extends LayerController {
     this.updateLayers();
   }
 
+  // setRotation(degrees) {
+  //   this.model.setRotation(degrees);
+  //   this.update();
+
+  //   this.model.setLayerRotations();
+
+  // }
+
   setSize(width, height, origin) {
     this.model.setSize(width, height, origin);
     this.update();
@@ -61,9 +82,18 @@ class Group extends LayerController {
     this.updateLayers();
   }
 
-  unGroupAllLayers() {
-    this.model.unGroupAllLayers();
-    this.view.remove();
+  // unGroupAllLayers() {
+  //   let nestedLayers = this.getLayers();
+  //   this.model.unGroupAllLayers();
+  //   this.view.remove();
+
+  //   return nestedLayers;
+  // }
+
+  sortByZIndex() {
+    this.model.layers.sort((cur, prev) => {
+      return cur.model.zIndex - prev.model.zIndex;
+    });
   }
 
   unGroupLayer(layer) {

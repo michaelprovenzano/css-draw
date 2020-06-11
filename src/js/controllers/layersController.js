@@ -40,12 +40,21 @@ class LayersPanel {
     return newLayer;
   }
 
-  includes(layer) {
-    return this.model.includes(layer);
+  flattenLayers() {
+    let layers = this.model.flattenLayers();
+    return layers;
   }
 
   getLayerById(id) {
     return this.model.getLayerById(id);
+  }
+
+  groupLayer(layer) {
+    this.model.groupLayer(layer);
+  }
+
+  includes(layer) {
+    return this.model.includes(layer);
   }
 
   makeAllInactive() {
@@ -61,27 +70,35 @@ class LayersPanel {
   }
 
   moveLayerForward(layer) {
+    // console.log(this.model.layers);
+    // console.log(this.model.allLayers);
+
     this.model.moveLayerForward(layer);
     this.view.moveLayerForward(layer);
   }
 
   moveLayerBackward(layer) {
+    // console.log(this.model.layers);
+    // console.log(this.model.allLayers);
+
     this.model.moveLayerBackward(layer);
     this.view.moveLayerBackward(layer);
   }
 
   moveLayerToFront(layer) {
-    console.log(layer);
+    this.model.moveLayerToFront(layer);
+    this.view.moveLayerToFront(layer);
   }
 
   moveLayerToBack(layer) {
-    console.log(layer);
+    this.model.moveLayerToBack(layer);
+    this.view.moveLayerToBack(layer);
   }
 
   moveLayerToPosition(layer) {}
 
   remove(layer) {
-    this.model.remove(layer.model);
+    this.model.remove(layer);
     this.view.remove(layer);
   }
 
@@ -98,17 +115,18 @@ class LayersPanel {
     let children = group.model.getLayers();
     let parent = this.view.getLayerElementById(group.id);
 
-    if (children)
-      children.forEach(item => {
+    if (children) {
+      for (let i = children.length - 1; i >= 0; i--) {
+        let item = children[i];
         let child = this.view.getLayerElementById(item.id);
         this.view.nestElement(parent, child);
-      });
+      }
+    }
   }
 
   unGroupAllLayers(group) {
     this.view.unNestAllElements(group);
-
-    group.unGroupAllLayers();
+    this.model.unGroupAllLayers(group);
     this.remove(group);
   }
 

@@ -36,7 +36,7 @@ class TransformHelper {
     this.height = shape.height + this.borderWidth * 2;
     this.width = shape.width + this.borderWidth * 2;
     this.transformOrigin = shape.center;
-    this.rotation = this.target.rotation;
+    this.rotation = shape.rotation;
     this.transformOrigin = shape.transformOrigin;
 
     // Generate the html

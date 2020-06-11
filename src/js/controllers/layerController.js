@@ -102,6 +102,10 @@ class Layer {
     this.update();
   }
 
+  setZIndex(index) {
+    this.model.zIndex = index;
+  }
+
   update() {
     this.model.update();
     this.model.setBoundsFromElement(this.view.element);

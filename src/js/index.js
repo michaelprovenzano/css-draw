@@ -27,6 +27,7 @@ class App {
     // HANDLE LAYERS PANEL INTERACTIONS
     if (event.target.closest(`#${this.canvas.layers.view.element.id}`)) {
       let id = event.target.id.split('-')[1];
+
       let thisLayer = this.canvas.layers.getLayerById(id);
       if (thisLayer) this.canvas.makeActiveLayer(thisLayer);
     }

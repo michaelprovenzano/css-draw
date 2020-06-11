@@ -183,7 +183,7 @@ var TransformHelper = /*#__PURE__*/function () {
       this.height = shape.height + this.borderWidth * 2;
       this.width = shape.width + this.borderWidth * 2;
       this.transformOrigin = shape.center;
-      this.rotation = this.target.rotation;
+      this.rotation = shape.rotation;
       this.transformOrigin = shape.transformOrigin; // Generate the html
 
       var element = "\n    <div class=\"transform-helper\" id=\"transform-helper-box\" style=\"top:".concat(this.top, "px; left:").concat(this.left, "px; width:").concat(this.width, "px; height:").concat(this.height, "px; transform: rotate(").concat(this.rotation, "deg); z-index:10000\">\n      <div class=\"transform-origin\" style=\"top:").concat(this.transformOrigin.y, "px; left:").concat(this.transformOrigin.x, "px; transform: translate(-50%, -50%)\"></div>\n\t\t\t<div class=\"anchor top-left corner\"></div>\n\t\t\t<div class=\"anchor top-right corner\"></div>\n\t\t\t<div class=\"anchor bottom-left corner\"></div>\n      <div class=\"anchor bottom-right corner\"></div>\n      <div class=\"rotate-icon top-left\">").concat(rotateIcon, "</div>\n      <div class=\"rotate-icon top-right\">").concat(rotateIcon, "</div>\n      <div class=\"rotate-icon bottom-left\">").concat(rotateIcon, "</div>\n      <div class=\"rotate-icon bottom-right\">").concat(rotateIcon, "</div>\n      \n    </div>"); // Insert the htmls
@@ -688,6 +688,11 @@ var Layer = /*#__PURE__*/function () {
       this.update();
     }
   }, {
+    key: "setZIndex",
+    value: function setZIndex(index) {
+      this.model.zIndex = index;
+    }
+  }, {
     key: "update",
     value: function update() {
       this.model.update();
@@ -835,7 +840,7 @@ var GroupModel = /*#__PURE__*/function (_LayerModel) {
       var _this2 = this,
           _this$layers;
 
-      this.layers.forEach(function (layer) {
+      layers.forEach(function (layer) {
         return layer.group = _this2;
       });
 
@@ -863,9 +868,55 @@ var GroupModel = /*#__PURE__*/function (_LayerModel) {
       });
     }
   }, {
+    key: "getLayerIndex",
+    value: function getLayerIndex(object) {
+      var index = -1;
+
+      for (var i = 0; i < this.layers.length; i++) {
+        var layer = this.layers[i];
+
+        if (layer.id === object.id) {
+          index = i;
+          break;
+        }
+      }
+
+      return index;
+    }
+  }, {
     key: "getLayers",
     value: function getLayers() {
       return this.layers;
+    }
+  }, {
+    key: "moveLayerBackward",
+    value: function moveLayerBackward(layer) {
+      var index = this.getLayerIndex(layer);
+
+      if (index > 0) {
+        // Switch z-index values
+        this.layers[index - 1].model.zIndex = index;
+        this.layers[index].model.zIndex = index - 1; // Switch values in array
+
+        var _ref = [this.layers[index], this.layers[index - 1]];
+        this.layers[index - 1] = _ref[0];
+        this.layers[index] = _ref[1];
+      }
+    }
+  }, {
+    key: "moveLayerForward",
+    value: function moveLayerForward(layer) {
+      var index = this.getLayerIndex(layer);
+
+      if (index !== this.layers.length - 1) {
+        // Switch z-index values
+        this.layers[index].model.zIndex = index + 1;
+        this.layers[index + 1].model.zIndex = index; // Switch values in array
+
+        var _ref2 = [this.layers[index], this.layers[index + 1]];
+        this.layers[index + 1] = _ref2[0];
+        this.layers[index] = _ref2[1];
+      }
     }
   }, {
     key: "updateGroupBounds",
@@ -906,6 +957,12 @@ var GroupModel = /*#__PURE__*/function (_LayerModel) {
       if (this.element) this.bounds = this.element.getBoundingClientRect();
     }
   }, {
+    key: "removeLayer",
+    value: function removeLayer(layer) {
+      var index = this.getLayerIndex(layer);
+      this.layers.splice(index, 1);
+    }
+  }, {
     key: "setRelativeProperties",
     value: function setRelativeProperties() {
       var _this3 = this;
@@ -940,11 +997,6 @@ var GroupModel = /*#__PURE__*/function (_LayerModel) {
     value: function unGroupLayer(layer) {
       var index = this.layers.indexOf(layer);
       this.layers.splice(index, 1);
-    }
-  }, {
-    key: "unGroupAllLayers",
-    value: function unGroupAllLayers() {
-      this.layers = [];
     }
   }, {
     key: "updateLayers",
@@ -1114,10 +1166,26 @@ var Group = /*#__PURE__*/function (_LayerController) {
       return this.model.getLayers();
     }
   }, {
+    key: "moveLayerBackward",
+    value: function moveLayerBackward(layer) {
+      this.model.moveLayerBackward(layer);
+    }
+  }, {
+    key: "moveLayerForward",
+    value: function moveLayerForward(layer) {
+      this.model.moveLayerForward(layer);
+    }
+  }, {
+    key: "removeLayer",
+    value: function removeLayer(layer) {
+      this.model.removeLayer(layer);
+    }
+  }, {
     key: "setPermanant",
     value: function setPermanant() {
       this.visible = true;
       this.temp = false;
+      this.sortByZIndex();
     }
   }, {
     key: "setPosition",
@@ -1126,7 +1194,12 @@ var Group = /*#__PURE__*/function (_LayerController) {
       this.update();
       this.model.setLayerPositions();
       this.updateLayers();
-    }
+    } // setRotation(degrees) {
+    //   this.model.setRotation(degrees);
+    //   this.update();
+    //   this.model.setLayerRotations();
+    // }
+
   }, {
     key: "setSize",
     value: function setSize(width, height, origin) {
@@ -1135,12 +1208,19 @@ var Group = /*#__PURE__*/function (_LayerController) {
       this.model.setLayerSizes();
       this.model.setLayerPositions();
       this.updateLayers();
-    }
+    } // unGroupAllLayers() {
+    //   let nestedLayers = this.getLayers();
+    //   this.model.unGroupAllLayers();
+    //   this.view.remove();
+    //   return nestedLayers;
+    // }
+
   }, {
-    key: "unGroupAllLayers",
-    value: function unGroupAllLayers() {
-      this.model.unGroupAllLayers();
-      this.view.remove();
+    key: "sortByZIndex",
+    value: function sortByZIndex() {
+      this.model.layers.sort(function (cur, prev) {
+        return cur.model.zIndex - prev.model.zIndex;
+      });
     }
   }, {
     key: "unGroupLayer",
@@ -1181,7 +1261,15 @@ function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { de
 
 function _createForOfIteratorHelper(o) { if (typeof Symbol === "undefined" || o[Symbol.iterator] == null) { if (Array.isArray(o) || (o = _unsupportedIterableToArray(o))) { var i = 0; var F = function F() {}; return { s: F, n: function n() { if (i >= o.length) return { done: true }; return { done: false, value: o[i++] }; }, e: function e(_e) { throw _e; }, f: F }; } throw new TypeError("Invalid attempt to iterate non-iterable instance.\nIn order to be iterable, non-array objects must have a [Symbol.iterator]() method."); } var it, normalCompletion = true, didErr = false, err; return { s: function s() { it = o[Symbol.iterator](); }, n: function n() { var step = it.next(); normalCompletion = step.done; return step; }, e: function e(_e2) { didErr = true; err = _e2; }, f: function f() { try { if (!normalCompletion && it.return != null) it.return(); } finally { if (didErr) throw err; } } }; }
 
+function _toConsumableArray(arr) { return _arrayWithoutHoles(arr) || _iterableToArray(arr) || _unsupportedIterableToArray(arr) || _nonIterableSpread(); }
+
+function _nonIterableSpread() { throw new TypeError("Invalid attempt to spread non-iterable instance.\nIn order to be iterable, non-array objects must have a [Symbol.iterator]() method."); }
+
 function _unsupportedIterableToArray(o, minLen) { if (!o) return; if (typeof o === "string") return _arrayLikeToArray(o, minLen); var n = Object.prototype.toString.call(o).slice(8, -1); if (n === "Object" && o.constructor) n = o.constructor.name; if (n === "Map" || n === "Set") return Array.from(o); if (n === "Arguments" || /^(?:Ui|I)nt(?:8|16|32)(?:Clamped)?Array$/.test(n)) return _arrayLikeToArray(o, minLen); }
+
+function _iterableToArray(iter) { if (typeof Symbol !== "undefined" && Symbol.iterator in Object(iter)) return Array.from(iter); }
+
+function _arrayWithoutHoles(arr) { if (Array.isArray(arr)) return _arrayLikeToArray(arr); }
 
 function _arrayLikeToArray(arr, len) { if (len == null || len > arr.length) len = arr.length; for (var i = 0, arr2 = new Array(len); i < len; i++) { arr2[i] = arr[i]; } return arr2; }
 
@@ -1195,8 +1283,10 @@ var Layers = /*#__PURE__*/function () {
   function Layers(layers) {
     _classCallCheck(this, Layers);
 
-    this.layers = layers || [];
-    this.updates = {}; // Bindings //
+    // A nested layer structure
+    this.layers = layers || []; // A flattened layer structure
+
+    this.allLayers = layers || []; // Bindings //
 
     this.add = this.add.bind(this);
     this.includes = this.includes.bind(this);
@@ -1211,6 +1301,7 @@ var Layers = /*#__PURE__*/function () {
     value: function add(layerObject) {
       layerObject.model.zIndex = this.layers.length;
       this.layers.push(layerObject);
+      this.allLayers.push(layerObject);
     }
   }, {
     key: "duplicate",
@@ -1225,24 +1316,44 @@ var Layers = /*#__PURE__*/function () {
       return newLayer;
     }
   }, {
-    key: "includes",
-    value: function includes(layer) {
-      return this.layers.includes(layer);
+    key: "flatten",
+    value: function flatten(layers) {
+      var _this = this;
+
+      var flattened = [];
+      layers.map(function (layer) {
+        flattened.push(layer);
+
+        if (layer.type === 'group') {
+          var _flattened;
+
+          var nested = _this.flatten(layer.getLayers());
+
+          flattened = (_flattened = flattened).concat.apply(_flattened, _toConsumableArray(nested));
+        }
+      });
+      return flattened;
+    }
+  }, {
+    key: "flattenLayers",
+    value: function flattenLayers() {
+      return this.flatten(this.layers);
     }
   }, {
     key: "getLayerById",
     value: function getLayerById(id) {
-      return this.layers.find(function (layer) {
+      return this.allLayers.find(function (layer) {
         return layer.model.id === parseInt(id);
       });
     }
   }, {
     key: "getLayerIndex",
-    value: function getLayerIndex(object) {
+    value: function getLayerIndex(object, array) {
       var index = -1;
+      if (!array) array = this.layers;
 
-      for (var i = 0; i < this.layers.length; i++) {
-        var layer = this.layers[i];
+      for (var i = 0; i < array.length; i++) {
+        var layer = array[i];
 
         if (layer.id === object.id) {
           index = i;
@@ -1253,43 +1364,65 @@ var Layers = /*#__PURE__*/function () {
       return index;
     }
   }, {
+    key: "groupLayer",
+    value: function groupLayer(layer) {
+      if (this.group) layer.unGroupLayer(layer);
+      var index = this.getLayerIndex(layer);
+      this.layers.splice(index, 1);
+    }
+  }, {
+    key: "includes",
+    value: function includes(layer) {
+      return this.layers.includes(layer);
+    }
+  }, {
     key: "makeAllInactive",
     value: function makeAllInactive() {}
   }, {
     key: "moveLayerForward",
     value: function moveLayerForward(layer) {
-      var index = this.getLayerIndex(layer);
+      if (layer.group) {
+        var group = layer.group;
+        group.moveLayerForward(layer);
+      } else {
+        var index = this.getLayerIndex(layer);
 
-      if (index !== this.layers.length - 1) {
-        // Switch z-index values
-        this.layers[index].model.zIndex = index + 1;
-        this.layers[index + 1].model.zIndex = index; // Switch values in array
+        if (index !== this.layers.length - 1) {
+          // Switch z-index values
+          this.layers[index].model.zIndex = index + 1;
+          this.layers[index + 1].model.zIndex = index; // Switch values in array
 
-        var _ref = [this.layers[index], this.layers[index + 1]];
-        this.layers[index + 1] = _ref[0];
-        this.layers[index] = _ref[1];
-        // Update both layers
-        this.layers[index].update();
-        this.layers[index + 1].update();
+          var _ref = [this.layers[index], this.layers[index + 1]];
+          this.layers[index + 1] = _ref[0];
+          this.layers[index] = _ref[1];
+        }
       }
+
+      this.setAllZIndexes();
     }
   }, {
     key: "moveLayerBackward",
     value: function moveLayerBackward(layer) {
-      var index = this.getLayerIndex(layer);
+      // If the layer is nested in a group, let the group handle moving the layer
+      if (layer.group) {
+        var group = layer.group;
+        group.moveLayerBackward(layer);
+      } else {
+        // Get the index of the layer
+        var index = this.getLayerIndex(layer);
 
-      if (index !== 0) {
-        // Switch z-index values
-        this.layers[index - 1].model.zIndex = index;
-        this.layers[index].model.zIndex = index - 1; // Switch values in array
+        if (index > 0) {
+          // Switch z-index values
+          this.layers[index - 1].model.zIndex = index;
+          this.layers[index].model.zIndex = index - 1; // Switch values in array
 
-        var _ref2 = [this.layers[index], this.layers[index - 1]];
-        this.layers[index - 1] = _ref2[0];
-        this.layers[index] = _ref2[1];
-        // Update both layers
-        this.layers[index].update();
-        this.layers[index - 1].update();
+          var _ref2 = [this.layers[index], this.layers[index - 1]];
+          this.layers[index - 1] = _ref2[0];
+          this.layers[index] = _ref2[1];
+        }
       }
+
+      this.setAllZIndexes();
     }
   }, {
     key: "moveLayerToFront",
@@ -1297,10 +1430,7 @@ var Layers = /*#__PURE__*/function () {
       var index = this.getLayerIndex(layer);
       this.layers.splice(index, 1);
       this.layers.push(layer);
-      this.layers.forEach(function (layer, i) {
-        layer.zIndex = i;
-        layer.update();
-      });
+      this.setAllZIndexes();
     }
   }, {
     key: "moveLayerToBack",
@@ -1308,17 +1438,49 @@ var Layers = /*#__PURE__*/function () {
       var index = this.getLayerIndex(layer);
       this.layers.splice(index, 1);
       this.layers.unshift(layer);
-      this.layers.forEach(function (layer, i) {
-        layer.zIndex = i;
+      this.setAllZIndexes();
+    }
+  }, {
+    key: "unGroupAllLayers",
+    value: function unGroupAllLayers(group) {
+      var _this$layers;
+
+      // Get the layers from the group
+      var layers = group.getLayers(); // Set the group for each layer to null
+
+      layers.forEach(function (layer) {
+        return layer.group = null;
+      }); // Get the index of the group in the layers array
+
+      var index = this.getLayerIndex(group); // Insert the layers into the layers array
+
+      (_this$layers = this.layers).splice.apply(_this$layers, [index, 0].concat(_toConsumableArray(layers)));
+
+      console.log(this.layers);
+    }
+  }, {
+    key: "setAllZIndexes",
+    value: function setAllZIndexes() {
+      // Flatten the groups to deterimine the layer order
+      var layers = this.flattenLayers(); // Set the index for each layer based on the order and update
+
+      layers.forEach(function (layer, i) {
+        layer.setZIndex(i);
         layer.update();
       });
     }
   }, {
     key: "remove",
     value: function remove(object) {
-      if (this.group) object.unGroupLayer(object);
-      var index = this.getLayerIndex(object);
-      this.layers.splice(index, 1);
+      if (object.group) {
+        var group = object.group;
+        group.removeLayer(object);
+      } else {
+        var index = this.getLayerIndex(object);
+        this.layers.splice(index, 1);
+        index = this.getLayerIndex(object, this.allLayers);
+        this.allLayers.splice(index, 1);
+      }
     }
   }, {
     key: "updateAll",
@@ -1603,12 +1765,12 @@ var LayersPanelView = /*#__PURE__*/function () {
   }, {
     key: "unNestAllElements",
     value: function unNestAllElements(group) {
-      var _this = this;
-
       var layers = group.getLayers();
-      layers.forEach(function (layer) {
-        return _this.unNestElement(layer);
-      });
+
+      for (var i = layers.length - 1; i >= 0; i--) {
+        var layer = layers[i];
+        this.unNestElement(layer);
+      }
     }
   }, {
     key: "recalculateChildren",
@@ -1664,13 +1826,29 @@ var LayersPanelView = /*#__PURE__*/function () {
     key: "moveLayerForward",
     value: function moveLayerForward(layer) {
       var thisLayer = this.getLayerElementById(layer.id);
+      if (layer.type === 'group') thisLayer = thisLayer.parentElement;
       thisLayer.previousSibling.insertAdjacentElement('beforebegin', thisLayer);
     }
   }, {
     key: "moveLayerBackward",
     value: function moveLayerBackward(layer) {
       var thisLayer = this.getLayerElementById(layer.id);
+      if (layer.type === 'group') thisLayer = thisLayer.parentElement;
       thisLayer.nextElementSibling.insertAdjacentElement('afterend', thisLayer);
+    }
+  }, {
+    key: "moveLayerToFront",
+    value: function moveLayerToFront(layer) {
+      var thisLayer = this.getLayerElementById(layer.id);
+      if (layer.type === 'group') thisLayer = thisLayer.parentElement;
+      this.element.insertAdjacentElement('afterbegin', thisLayer);
+    }
+  }, {
+    key: "moveLayerToBack",
+    value: function moveLayerToBack(layer) {
+      var thisLayer = this.getLayerElementById(layer.id);
+      if (layer.type === 'group') thisLayer = thisLayer.parentElement;
+      this.element.insertAdjacentElement('beforeend', thisLayer);
     }
   }, {
     key: "setHoverPosition",
@@ -1759,14 +1937,25 @@ var LayersPanel = /*#__PURE__*/function () {
       return newLayer;
     }
   }, {
-    key: "includes",
-    value: function includes(layer) {
-      return this.model.includes(layer);
+    key: "flattenLayers",
+    value: function flattenLayers() {
+      var layers = this.model.flattenLayers();
+      return layers;
     }
   }, {
     key: "getLayerById",
     value: function getLayerById(id) {
       return this.model.getLayerById(id);
+    }
+  }, {
+    key: "groupLayer",
+    value: function groupLayer(layer) {
+      this.model.groupLayer(layer);
+    }
+  }, {
+    key: "includes",
+    value: function includes(layer) {
+      return this.model.includes(layer);
     }
   }, {
     key: "makeAllInactive",
@@ -1786,24 +1975,30 @@ var LayersPanel = /*#__PURE__*/function () {
   }, {
     key: "moveLayerForward",
     value: function moveLayerForward(layer) {
+      // console.log(this.model.layers);
+      // console.log(this.model.allLayers);
       this.model.moveLayerForward(layer);
       this.view.moveLayerForward(layer);
     }
   }, {
     key: "moveLayerBackward",
     value: function moveLayerBackward(layer) {
+      // console.log(this.model.layers);
+      // console.log(this.model.allLayers);
       this.model.moveLayerBackward(layer);
       this.view.moveLayerBackward(layer);
     }
   }, {
     key: "moveLayerToFront",
     value: function moveLayerToFront(layer) {
-      console.log(layer);
+      this.model.moveLayerToFront(layer);
+      this.view.moveLayerToFront(layer);
     }
   }, {
     key: "moveLayerToBack",
     value: function moveLayerToBack(layer) {
-      console.log(layer);
+      this.model.moveLayerToBack(layer);
+      this.view.moveLayerToBack(layer);
     }
   }, {
     key: "moveLayerToPosition",
@@ -1811,14 +2006,12 @@ var LayersPanel = /*#__PURE__*/function () {
   }, {
     key: "remove",
     value: function remove(layer) {
-      this.model.remove(layer.model);
+      this.model.remove(layer);
       this.view.remove(layer);
     }
   }, {
     key: "setGroupPermanant",
     value: function setGroupPermanant(group) {
-      var _this = this;
-
       var options = {
         targetId: group.model.id,
         group: true
@@ -1828,17 +2021,20 @@ var LayersPanel = /*#__PURE__*/function () {
 
       var children = group.model.getLayers();
       var parent = this.view.getLayerElementById(group.id);
-      if (children) children.forEach(function (item) {
-        var child = _this.view.getLayerElementById(item.id);
 
-        _this.view.nestElement(parent, child);
-      });
+      if (children) {
+        for (var i = children.length - 1; i >= 0; i--) {
+          var item = children[i];
+          var child = this.view.getLayerElementById(item.id);
+          this.view.nestElement(parent, child);
+        }
+      }
     }
   }, {
     key: "unGroupAllLayers",
     value: function unGroupAllLayers(group) {
       this.view.unNestAllElements(group);
-      group.unGroupAllLayers();
+      this.model.unGroupAllLayers(group);
       this.remove(group);
     }
   }, {
@@ -2169,6 +2365,11 @@ var KeyHandler = /*#__PURE__*/function () {
     value: function keyup(event) {
       this.keysDown.keyup(event);
     }
+  }, {
+    key: "setAction",
+    value: function setAction(action, keysArray) {
+      this.actions[action] = keysArray;
+    }
   }]);
 
   return KeyHandler;
@@ -2299,6 +2500,8 @@ var Canvas = /*#__PURE__*/function () {
   }, {
     key: "addTempGroup",
     value: function addTempGroup(layers, parent) {
+      var _this2 = this;
+
       var options = {
         id: this.id,
         visible: false,
@@ -2307,6 +2510,9 @@ var Canvas = /*#__PURE__*/function () {
       var group = new _groupController.default(options);
       if (layers) group.add(layers, parent);
       this.layers.add(group);
+      layers.forEach(function (layer) {
+        return _this2.layers.groupLayer(layer);
+      });
       this.id++;
       return group;
     }
@@ -2314,6 +2520,7 @@ var Canvas = /*#__PURE__*/function () {
     key: "addLayerToGroup",
     value: function addLayerToGroup(layer, group) {
       group.add([layer]);
+      this.layers.groupLayer(layer);
       return group;
     }
   }, {
@@ -2340,15 +2547,11 @@ var Canvas = /*#__PURE__*/function () {
   }, {
     key: "deleteLayer",
     value: function deleteLayer(layer) {
-      var _this2 = this;
-
       // If layer is group, delete all containing layers before deleting the group
       if (layer.type === 'group') {
         var layers = layer.getLayers();
         layers.forEach(function (curLayer) {
-          _this2.layers.remove(curLayer); // Remove from layers panel
-
-
+          // this.layers.remove(curLayer); // Remove from layers panel
           curLayer.remove(); // Remove layer shape
         });
       }
@@ -2913,7 +3116,7 @@ var parent = module.bundle.parent;
 if ((!parent || !parent.isParcelRequire) && typeof WebSocket !== 'undefined') {
   var hostname = "" || location.hostname;
   var protocol = location.protocol === 'https:' ? 'wss' : 'ws';
-  var ws = new WebSocket(protocol + '://' + hostname + ':' + "50842" + '/');
+  var ws = new WebSocket(protocol + '://' + hostname + ':' + "52794" + '/');
 
   ws.onmessage = function (event) {
     checkedAssets = {};

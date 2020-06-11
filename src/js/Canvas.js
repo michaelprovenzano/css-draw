@@ -87,12 +87,16 @@ class Canvas {
 
     if (layers) group.add(layers, parent);
     this.layers.add(group);
+    layers.forEach(layer => this.layers.groupLayer(layer));
+
     this.id++;
+
     return group;
   }
 
   addLayerToGroup(layer, group) {
     group.add([layer]);
+    this.layers.groupLayer(layer);
     return group;
   }
 
@@ -124,8 +128,9 @@ class Canvas {
     // If layer is group, delete all containing layers before deleting the group
     if (layer.type === 'group') {
       let layers = layer.getLayers();
+
       layers.forEach(curLayer => {
-        this.layers.remove(curLayer); // Remove from layers panel
+        // this.layers.remove(curLayer); // Remove from layers panel
         curLayer.remove(); // Remove layer shape
       });
     }

@@ -19,9 +19,10 @@ class GroupModel extends LayerModel {
   }
 
   add(layers) {
-    this.layers.forEach(layer => (layer.group = this));
+    layers.forEach(layer => (layer.group = this));
     this.layers.push(...layers);
     this.updateGroupBounds();
+
     return this.layers;
   }
 
@@ -42,8 +43,45 @@ class GroupModel extends LayerModel {
     });
   }
 
+  getLayerIndex(object) {
+    let index = -1;
+    for (let i = 0; i < this.layers.length; i++) {
+      let layer = this.layers[i];
+      if (layer.id === object.id) {
+        index = i;
+        break;
+      }
+    }
+    return index;
+  }
+
   getLayers() {
     return this.layers;
+  }
+
+  moveLayerBackward(layer) {
+    const index = this.getLayerIndex(layer);
+
+    if (index > 0) {
+      // Switch z-index values
+      this.layers[index - 1].model.zIndex = index;
+      this.layers[index].model.zIndex = index - 1;
+
+      // Switch values in array
+      [this.layers[index - 1], this.layers[index]] = [this.layers[index], this.layers[index - 1]];
+    }
+  }
+
+  moveLayerForward(layer) {
+    const index = this.getLayerIndex(layer);
+    if (index !== this.layers.length - 1) {
+      // Switch z-index values
+      this.layers[index].model.zIndex = index + 1;
+      this.layers[index + 1].model.zIndex = index;
+
+      // Switch values in array
+      [this.layers[index + 1], this.layers[index]] = [this.layers[index], this.layers[index + 1]];
+    }
   }
 
   updateGroupBounds() {
@@ -82,6 +120,11 @@ class GroupModel extends LayerModel {
     if (this.element) this.bounds = this.element.getBoundingClientRect();
   }
 
+  removeLayer(layer) {
+    let index = this.getLayerIndex(layer);
+    this.layers.splice(index, 1);
+  }
+
   setRelativeProperties() {
     // Loop through layers
     this.layers.forEach((layer, i) => {
@@ -106,10 +149,6 @@ class GroupModel extends LayerModel {
   unGroupLayer(layer) {
     let index = this.layers.indexOf(layer);
     this.layers.splice(index, 1);
-  }
-
-  unGroupAllLayers() {
-    this.layers = [];
   }
 
   updateLayers() {
