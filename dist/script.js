@@ -2899,7 +2899,62 @@ function rotationAngle(cx, cy, ex, ey) {
 
 var _default = Canvas;
 exports.default = _default;
-},{"./TransformHelper":"TransformHelper.js","./controllers/shapeController":"controllers/shapeController.js","./controllers/groupController":"controllers/groupController.js","./controllers/layersController":"controllers/layersController.js","./controllers/layerDetailsController":"controllers/layerDetailsController.js","./utils/Point":"utils/Point.js","./KeyboardEvents":"KeyboardEvents.js"}],"views/customSelect.js":[function(require,module,exports) {
+},{"./TransformHelper":"TransformHelper.js","./controllers/shapeController":"controllers/shapeController.js","./controllers/groupController":"controllers/groupController.js","./controllers/layersController":"controllers/layersController.js","./controllers/layerDetailsController":"controllers/layerDetailsController.js","./utils/Point":"utils/Point.js","./KeyboardEvents":"KeyboardEvents.js"}],"controllers/copyCSSController.js":[function(require,module,exports) {
+"use strict";
+
+Object.defineProperty(exports, "__esModule", {
+  value: true
+});
+exports.default = void 0;
+
+function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+
+function _defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } }
+
+function _createClass(Constructor, protoProps, staticProps) { if (protoProps) _defineProperties(Constructor.prototype, protoProps); if (staticProps) _defineProperties(Constructor, staticProps); return Constructor; }
+
+var copyCSS = /*#__PURE__*/function () {
+  function copyCSS() {
+    _classCallCheck(this, copyCSS);
+
+    this.css = '';
+    this.copyCSS = this.copyCSS.bind(this);
+    var cssBtn = document.getElementById('copy-css');
+    cssBtn.addEventListener('click', this.copyCSS);
+  }
+
+  _createClass(copyCSS, [{
+    key: "copyCSS",
+    value: function copyCSS() {
+      this.setCSS();
+      this.copyToClipboard(this.css);
+    }
+  }, {
+    key: "setCSS",
+    value: function setCSS() {
+      this.css = "body {\n  background: lightgray;\n}\n\n#canvas {\n  display: block;\n  position: relative;\n  width: 100%;\n  height: 100vh;\n}\n\n.shape {\n  display: inline-block;\n  position: absolute;\n}\n\n.ellipse {\n  border-radius: 50%;\n}\n";
+    }
+  }, {
+    key: "copyToClipboard",
+    value: function copyToClipboard(str) {
+      var el = document.createElement('textarea');
+      el.value = str;
+      el.setAttribute('readonly', '');
+      el.style.position = 'absolute';
+      el.style.left = '-9999px';
+      document.body.appendChild(el);
+      el.select();
+      document.execCommand('copy');
+      document.body.removeChild(el);
+    }
+  }]);
+
+  return copyCSS;
+}();
+
+var _default = copyCSS;
+exports.default = _default;
+},{}],"views/customSelect.js":[function(require,module,exports) {
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -2939,6 +2994,8 @@ exports.default = _default;
 
 var _Canvas = _interopRequireDefault(require("./Canvas"));
 
+var _copyCSSController = _interopRequireDefault(require("./controllers/copyCSSController"));
+
 var _customSelect = _interopRequireDefault(require("./views/customSelect"));
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
@@ -2967,7 +3024,8 @@ var App = /*#__PURE__*/function () {
 
     this.canvas = new _Canvas.default(options.canvas);
     this.menu = options.menu;
-    this.updates = []; // Bindings
+    this.updates = [];
+    this.copyCSS = new _copyCSSController.default(); // Bindings
 
     this.handleUpdates = this.handleUpdates.bind(this);
     this.mousedown = this.mousedown.bind(this);
@@ -3088,7 +3146,7 @@ colorPicker.addEventListener('input', function () {
   app.canvas.shapeColor = colorPicker.value;
   if (app.canvas.activeLayer) app.canvas.activeLayer.setColor(app.canvas.shapeColor);
 });
-},{"./Canvas":"Canvas.js","./views/customSelect":"views/customSelect.js"}],"../../node_modules/parcel/src/builtins/hmr-runtime.js":[function(require,module,exports) {
+},{"./Canvas":"Canvas.js","./controllers/copyCSSController":"controllers/copyCSSController.js","./views/customSelect":"views/customSelect.js"}],"../../node_modules/parcel/src/builtins/hmr-runtime.js":[function(require,module,exports) {
 var global = arguments[3];
 var OVERLAY_ID = '__parcel__error__overlay__';
 var OldModule = module.bundle.Module;
@@ -3116,7 +3174,7 @@ var parent = module.bundle.parent;
 if ((!parent || !parent.isParcelRequire) && typeof WebSocket !== 'undefined') {
   var hostname = "" || location.hostname;
   var protocol = location.protocol === 'https:' ? 'wss' : 'ws';
-  var ws = new WebSocket(protocol + '://' + hostname + ':' + "52794" + '/');
+  var ws = new WebSocket(protocol + '://' + hostname + ':' + "52903" + '/');
 
   ws.onmessage = function (event) {
     checkedAssets = {};

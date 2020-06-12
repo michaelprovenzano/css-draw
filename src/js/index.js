@@ -1,4 +1,5 @@
 import Canvas from './Canvas';
+import CopyCSS from './controllers/copyCSSController';
 import customSelect from './views/customSelect';
 
 class App {
@@ -6,6 +7,7 @@ class App {
     this.canvas = new Canvas(options.canvas);
     this.menu = options.menu;
     this.updates = [];
+    this.copyCSS = new CopyCSS();
 
     // Bindings
     this.handleUpdates = this.handleUpdates.bind(this);

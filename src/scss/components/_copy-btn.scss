@@ -1,0 +1,12 @@
+.copy-btn {
+  display: inline-block;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 36px;
+  border: none;
+  color: $text-light;
+  background: $darkgray2;
+  cursor: pointer;
+  padding: 0 1rem;
+}

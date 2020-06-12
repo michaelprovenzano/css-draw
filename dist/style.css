@@ -32,7 +32,13 @@ h6 {
     justify-content: start; }
 
 .header-primary {
-  background: #212427; }
+  background: #212427;
+  display: flex;
+  justify-content: space-between; }
+  .header-primary .menu-right {
+    display: flex; }
+    .header-primary .menu-right > * {
+      margin-left: 0.5rem; }
 
 .header-secondary {
   background: #4c5155;
@@ -115,6 +121,18 @@ h6 {
     padding: 16px; }
   .layer-details-panel .row {
     margin-bottom: 16px; }
+
+.copy-btn {
+  display: inline-block;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 36px;
+  border: none;
+  color: #d3d3d3;
+  background: #303336;
+  cursor: pointer;
+  padding: 0 1rem; }
 
 .toolbar-btn {
   display: flex;
