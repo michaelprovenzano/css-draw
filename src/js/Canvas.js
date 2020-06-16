@@ -227,7 +227,10 @@ class Canvas {
       if (target && event.target.id !== 'transform-helper-box') this.makeActiveLayer(target);
 
       // If the click is on the canvas clear the active layer
-      if (event.target.id === this.element.id) this.clearActiveLayer();
+      if (event.target.id === this.element.id) {
+        this.unGroupAllLayers(this.activeLayer);
+        this.clearActiveLayer();
+      }
 
       // Attach the helper to the active layer or remove if it doesn't exist
       if (this.activeLayer) {
@@ -367,7 +370,7 @@ class Canvas {
 
   removeGroup(group) {
     this.layers.remove(group);
-    this.makeActiveLayer();
+    // this.makeActiveLayer();
   }
 
   resizeLayer(layer) {

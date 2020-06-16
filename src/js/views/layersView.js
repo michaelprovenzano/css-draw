@@ -262,6 +262,7 @@ class LayersPanelView {
 
   remove(layer) {
     const layerEl = this.getLayerElementById(layer.id);
+
     if (!layerEl) return;
 
     if (layer.type === 'group' && !layer.temp) {

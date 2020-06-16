@@ -100,6 +100,7 @@ class LayersPanel {
   remove(layer) {
     this.model.remove(layer);
     this.view.remove(layer);
+    layer.remove();
   }
 
   setGroupPermanant(group) {
@@ -125,7 +126,7 @@ class LayersPanel {
   }
 
   unGroupAllLayers(group) {
-    this.view.unNestAllElements(group);
+    if (!group.temp) this.view.unNestAllElements(group);
     this.model.unGroupAllLayers(group);
     this.remove(group);
   }

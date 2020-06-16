@@ -1610,14 +1610,16 @@ var Layers = /*#__PURE__*/function () {
   }, {
     key: "remove",
     value: function remove(object) {
+      // Check if is nested within a group
       if (object.group) {
         var group = object.group;
         group.removeLayer(object);
       } else {
+        // Get the index and remove it if it is found (if statement is necessary)
         var index = this.getLayerIndex(object);
-        this.layers.splice(index, 1);
+        if (index >= 0) this.layers.splice(index, 1);
         index = this.getLayerIndex(object, this.allLayers);
-        this.allLayers.splice(index, 1);
+        if (index >= 0) this.allLayers.splice(index, 1);
       }
     }
   }, {
@@ -2146,6 +2148,7 @@ var LayersPanel = /*#__PURE__*/function () {
     value: function remove(layer) {
       this.model.remove(layer);
       this.view.remove(layer);
+      layer.remove();
     }
   }, {
     key: "setGroupPermanant",
@@ -2171,7 +2174,7 @@ var LayersPanel = /*#__PURE__*/function () {
   }, {
     key: "unGroupAllLayers",
     value: function unGroupAllLayers(group) {
-      this.view.unNestAllElements(group);
+      if (!group.temp) this.view.unNestAllElements(group);
       this.model.unGroupAllLayers(group);
       this.remove(group);
     }
@@ -2795,7 +2798,11 @@ var Canvas = /*#__PURE__*/function () {
 
         if (target && event.target.id !== 'transform-helper-box') this.makeActiveLayer(target); // If the click is on the canvas clear the active layer
 
-        if (event.target.id === this.element.id) this.clearActiveLayer(); // Attach the helper to the active layer or remove if it doesn't exist
+        if (event.target.id === this.element.id) {
+          this.unGroupAllLayers(this.activeLayer);
+          this.clearActiveLayer();
+        } // Attach the helper to the active layer or remove if it doesn't exist
+
 
         if (this.activeLayer) {
           this.transformHelper.set(this.activeLayer);
@@ -2927,8 +2934,7 @@ var Canvas = /*#__PURE__*/function () {
   }, {
     key: "removeGroup",
     value: function removeGroup(group) {
-      this.layers.remove(group);
-      this.makeActiveLayer();
+      this.layers.remove(group); // this.makeActiveLayer();
     }
   }, {
     key: "resizeLayer",

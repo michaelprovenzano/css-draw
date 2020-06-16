@@ -171,15 +171,17 @@ class Layers {
   }
 
   remove(object) {
+    // Check if is nested within a group
     if (object.group) {
       let group = object.group;
       group.removeLayer(object);
     } else {
+      // Get the index and remove it if it is found (if statement is necessary)
       let index = this.getLayerIndex(object);
-      this.layers.splice(index, 1);
+      if (index >= 0) this.layers.splice(index, 1);
 
       index = this.getLayerIndex(object, this.allLayers);
-      this.allLayers.splice(index, 1);
+      if (index >= 0) this.allLayers.splice(index, 1);
     }
   }
 
