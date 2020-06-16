@@ -45,6 +45,7 @@ class LayerDetailsController {
     data.rotation = this.getNumberValue('elementRotation');
     data.width = this.getNumberValue('elementWidth');
     data.height = this.getNumberValue('elementHeight');
+    data.backgroundColor = this.view.elementSolidColor.value;
 
     if (this.layer) this.layer.update();
   }
@@ -59,6 +60,7 @@ class LayerDetailsController {
     this.view.setValue('elementRotation', data.rotation);
     this.view.setValue('elementWidth', data.width);
     this.view.setValue('elementHeight', data.height);
+    this.view.setValue('elementSolidColor', data.backgroundColor);
     // this.view.setValue('elementFillType', 'Solid Color');
   }
 }

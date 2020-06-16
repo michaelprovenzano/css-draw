@@ -26,6 +26,76 @@ class GroupModel extends LayerModel {
     return this.layers;
   }
 
+  alignLayersTop() {
+    let startProps = this.layers[0].getProperties(),
+      top = startProps.top;
+
+    this.layers.forEach(layer => {
+      let props = layer.getProperties();
+      layer.setPosition(props.left, top);
+    });
+  }
+
+  alignLayersLeft() {
+    let startProps = this.layers[0].getProperties(),
+      left = startProps.left;
+
+    this.layers.forEach(layer => {
+      let props = layer.getProperties();
+      layer.setPosition(left, props.top);
+    });
+  }
+
+  alignLayersRight() {
+    let startProps = this.layers[0].getProperties(),
+      right = startProps.left + startProps.width;
+
+    this.layers.forEach(layer => {
+      let props = layer.getProperties();
+      let thisRight = props.left + props.width;
+      let difference = thisRight - right;
+      layer.setPosition(props.left - difference, props.top);
+    });
+  }
+
+  alignLayersBottom() {
+    let startProps = this.layers[0].getProperties(),
+      bottom = startProps.top + startProps.height;
+
+    this.layers.forEach(layer => {
+      let props = layer.getProperties();
+      let thisBottom = props.top + props.height;
+      let difference = thisBottom - bottom;
+      layer.setPosition(props.left, props.top - difference);
+    });
+  }
+
+  alignLayersCenterX() {
+    let center = this.layers[0].getCenter();
+
+    this.layers.forEach(layer => {
+      let props = layer.getProperties();
+      let thisCenter = layer.getCenter();
+
+      let centerDiff = thisCenter.x - center.x;
+
+      layer.setPosition(props.left - centerDiff, props.top);
+    });
+  }
+
+  alignLayersCenterY() {
+    let center = this.layers[0].getCenter();
+
+    this.layers.forEach(layer => {
+      let props = layer.getProperties();
+      let thisCenter = layer.getCenter();
+
+      let centerDiff = thisCenter.y - center.y;
+
+      layer.setPosition(props.left, props.top - centerDiff);
+    });
+  }
+
   clearClickPosition() {
     // Set group clickEvent
     this.clickEvent = undefined;

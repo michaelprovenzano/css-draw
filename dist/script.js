@@ -279,6 +279,7 @@ var LayerModel = /*#__PURE__*/function () {
     this.active = true;
     this.zIndex = 1; // Bindings ///////
 
+    this.getCenter = this.getCenter.bind(this);
     this.makeActive = this.makeActive.bind(this);
     this.makeInactive = this.makeInactive.bind(this);
     this.setBoundsFromElement = this.setBoundsFromElement.bind(this);
@@ -296,6 +297,11 @@ var LayerModel = /*#__PURE__*/function () {
     key: "clearClickPosition",
     value: function clearClickPosition() {
       this.clickEvent = undefined;
+    }
+  }, {
+    key: "getCenter",
+    value: function getCenter() {
+      return new _Point.default(this.width / 2 + this.left, this.height / 2 + this.top);
     }
   }, {
     key: "makeActive",
@@ -578,6 +584,7 @@ var Layer = /*#__PURE__*/function () {
 
     this.add = this.add.bind(this);
     this.clearClickPosition = this.clearClickPosition.bind(this);
+    this.getCenter = this.getCenter.bind(this);
     this.getProperties = this.getProperties.bind(this);
     this.getTransformOrigin = this.getTransformOrigin.bind(this);
     this.makeInactive = this.makeInactive.bind(this);
@@ -610,6 +617,11 @@ var Layer = /*#__PURE__*/function () {
     key: "makeInactive",
     value: function makeInactive(layer) {
       this.model.makeInactive();
+    }
+  }, {
+    key: "getCenter",
+    value: function getCenter() {
+      return this.model.getCenter();
     }
   }, {
     key: "getProperties",
@@ -848,6 +860,72 @@ var GroupModel = /*#__PURE__*/function (_LayerModel) {
 
       this.updateGroupBounds();
       return this.layers;
+    }
+  }, {
+    key: "alignLayersTop",
+    value: function alignLayersTop() {
+      var startProps = this.layers[0].getProperties(),
+          top = startProps.top;
+      this.layers.forEach(function (layer) {
+        var props = layer.getProperties();
+        layer.setPosition(props.left, top);
+      });
+    }
+  }, {
+    key: "alignLayersLeft",
+    value: function alignLayersLeft() {
+      var startProps = this.layers[0].getProperties(),
+          left = startProps.left;
+      this.layers.forEach(function (layer) {
+        var props = layer.getProperties();
+        layer.setPosition(left, props.top);
+      });
+    }
+  }, {
+    key: "alignLayersRight",
+    value: function alignLayersRight() {
+      var startProps = this.layers[0].getProperties(),
+          right = startProps.left + startProps.width;
+      this.layers.forEach(function (layer) {
+        var props = layer.getProperties();
+        var thisRight = props.left + props.width;
+        var difference = thisRight - right;
+        layer.setPosition(props.left - difference, props.top);
+      });
+    }
+  }, {
+    key: "alignLayersBottom",
+    value: function alignLayersBottom() {
+      var startProps = this.layers[0].getProperties(),
+          bottom = startProps.top + startProps.height;
+      this.layers.forEach(function (layer) {
+        var props = layer.getProperties();
+        var thisBottom = props.top + props.height;
+        var difference = thisBottom - bottom;
+        layer.setPosition(props.left, props.top - difference);
+      });
+    }
+  }, {
+    key: "alignLayersCenterX",
+    value: function alignLayersCenterX() {
+      var center = this.layers[0].getCenter();
+      this.layers.forEach(function (layer) {
+        var props = layer.getProperties();
+        var thisCenter = layer.getCenter();
+        var centerDiff = thisCenter.x - center.x;
+        layer.setPosition(props.left - centerDiff, props.top);
+      });
+    }
+  }, {
+    key: "alignLayersCenterY",
+    value: function alignLayersCenterY() {
+      var center = this.layers[0].getCenter();
+      this.layers.forEach(function (layer) {
+        var props = layer.getProperties();
+        var thisCenter = layer.getCenter();
+        var centerDiff = thisCenter.y - center.y;
+        layer.setPosition(props.left, props.top - centerDiff);
+      });
     }
   }, {
     key: "clearClickPosition",
@@ -1136,9 +1214,27 @@ var Group = /*#__PURE__*/function (_LayerController) {
     options.hasOwnProperty('temp') ? _this.temp = options.temp : _this.temp = false; // Bindings
 
     _this.add = _this.add.bind(_assertThisInitialized(_this));
+    _this.alignLayersTop = _this.alignLayersTop.bind(_assertThisInitialized(_this));
+    _this.alignLayersLeft = _this.alignLayersLeft.bind(_assertThisInitialized(_this));
+    _this.alignLayersRight = _this.alignLayersRight.bind(_assertThisInitialized(_this));
+    _this.alignLayersBottom = _this.alignLayersBottom.bind(_assertThisInitialized(_this));
+    _this.alignLayersCenterX = _this.alignLayersCenterX.bind(_assertThisInitialized(_this));
+    _this.alignLayersCenterY = _this.alignLayersCenterY.bind(_assertThisInitialized(_this));
     _this.clearClickPosition = _this.clearClickPosition.bind(_assertThisInitialized(_this));
     _this.setPosition = _this.setPosition.bind(_assertThisInitialized(_this));
     _this.updateGroupBounds = _this.updateGroupBounds.bind(_assertThisInitialized(_this));
+    var alignTopBtn = document.getElementById('align-top');
+    var alignLeftBtn = document.getElementById('align-left');
+    var alignRightBtn = document.getElementById('align-right');
+    var alignBottomBtn = document.getElementById('align-bottom');
+    var alignCenterXBtn = document.getElementById('align-center-x');
+    var alignCenterYBtn = document.getElementById('align-center-y');
+    alignTopBtn.addEventListener('click', _this.alignLayersTop);
+    alignLeftBtn.addEventListener('click', _this.alignLayersLeft);
+    alignRightBtn.addEventListener('click', _this.alignLayersRight);
+    alignBottomBtn.addEventListener('click', _this.alignLayersBottom);
+    alignCenterXBtn.addEventListener('click', _this.alignLayersCenterX);
+    alignCenterYBtn.addEventListener('click', _this.alignLayersCenterY);
     return _this;
   }
 
@@ -1154,6 +1250,48 @@ var Group = /*#__PURE__*/function (_LayerController) {
 
 
       this.setRelativeProperties();
+    }
+  }, {
+    key: "alignLayersTop",
+    value: function alignLayersTop() {
+      this.model.alignLayersTop();
+      this.updateGroupBounds();
+      this.transformHelper.update();
+    }
+  }, {
+    key: "alignLayersLeft",
+    value: function alignLayersLeft() {
+      this.model.alignLayersLeft();
+      this.updateGroupBounds();
+      this.transformHelper.update();
+    }
+  }, {
+    key: "alignLayersRight",
+    value: function alignLayersRight() {
+      this.model.alignLayersRight();
+      this.updateGroupBounds();
+      this.transformHelper.update();
+    }
+  }, {
+    key: "alignLayersBottom",
+    value: function alignLayersBottom() {
+      this.model.alignLayersBottom();
+      this.updateGroupBounds();
+      this.transformHelper.update();
+    }
+  }, {
+    key: "alignLayersCenterX",
+    value: function alignLayersCenterX() {
+      this.model.alignLayersCenterX();
+      this.updateGroupBounds();
+      this.transformHelper.update();
+    }
+  }, {
+    key: "alignLayersCenterY",
+    value: function alignLayersCenterY() {
+      this.model.alignLayersCenterY();
+      this.updateGroupBounds();
+      this.transformHelper.update();
     }
   }, {
     key: "clearClickPosition",
@@ -2072,7 +2210,8 @@ var LayerDetailsView = /*#__PURE__*/function () {
     this.elementRotation = document.getElementById('layer-detail_elementRotation');
     this.elementWidth = document.getElementById('layer-detail_elementWidth');
     this.elementHeight = document.getElementById('layer-detail_elementHeight');
-    this.elementFillType = document.getElementById('layer-detail_elementFillType'); // Bindings
+    this.elementFillType = document.getElementById('layer-detail_elementFillType');
+    this.elementSolidColor = document.getElementById('layer-detail_elementSolidColor'); // Bindings
 
     this.getValue = this.getValue.bind(this);
     this.setValue = this.setValue.bind(this);
@@ -2185,6 +2324,7 @@ var LayerDetailsController = /*#__PURE__*/function () {
       data.rotation = this.getNumberValue('elementRotation');
       data.width = this.getNumberValue('elementWidth');
       data.height = this.getNumberValue('elementHeight');
+      data.backgroundColor = this.view.elementSolidColor.value;
       if (this.layer) this.layer.update();
     }
   }, {
@@ -2197,7 +2337,8 @@ var LayerDetailsController = /*#__PURE__*/function () {
       this.view.setValue('elementType', data.type);
       this.view.setValue('elementRotation', data.rotation);
       this.view.setValue('elementWidth', data.width);
-      this.view.setValue('elementHeight', data.height); // this.view.setValue('elementFillType', 'Solid Color');
+      this.view.setValue('elementHeight', data.height);
+      this.view.setValue('elementSolidColor', data.backgroundColor); // this.view.setValue('elementFillType', 'Solid Color');
     }
   }]);
 
@@ -2954,6 +3095,80 @@ var copyCSS = /*#__PURE__*/function () {
 
 var _default = copyCSS;
 exports.default = _default;
+},{}],"controllers/copyHTMLController.js":[function(require,module,exports) {
+"use strict";
+
+Object.defineProperty(exports, "__esModule", {
+  value: true
+});
+exports.default = void 0;
+
+function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+
+function _defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } }
+
+function _createClass(Constructor, protoProps, staticProps) { if (protoProps) _defineProperties(Constructor.prototype, protoProps); if (staticProps) _defineProperties(Constructor, staticProps); return Constructor; }
+
+var copyHTML = /*#__PURE__*/function () {
+  function copyHTML() {
+    _classCallCheck(this, copyHTML);
+
+    this.element = document.getElementById('canvas');
+    this.copyElement = this.copyElement.bind(this);
+    this.copyCanvas = this.copyCanvas.bind(this);
+    var copyBtn = document.getElementById('copy-html');
+    copyBtn.addEventListener('click', this.copyCanvas);
+  }
+
+  _createClass(copyHTML, [{
+    key: "copyCanvas",
+    value: function copyCanvas() {
+      this.copyToClipboard("".concat(this.element.outerHTML));
+    }
+  }, {
+    key: "copyElement",
+    value: function copyElement(element) {
+      var doc = document;
+      var text = doc.getElementById(element);
+      var range;
+      var selection;
+
+      if (doc.body.createTextRange) {
+        range = doc.body.createTextRange();
+        range.moveToElement(text);
+        range.select();
+      } else if (window.getSelection) {
+        selection = window.getSelection();
+        range = doc.createRange();
+        range.selectNodeContents(text);
+        selection.removeAllRanges();
+        selection.addRange(range);
+      }
+
+      document.execCommand('copy');
+      window.getSelection().removeAllRanges();
+      document.getElementById('clickMe').value = 'Copied to clipboard!';
+    }
+  }, {
+    key: "copyToClipboard",
+    value: function copyToClipboard(str) {
+      var el = document.createElement('textarea');
+      el.value = str;
+      el.setAttribute('readonly', '');
+      el.style.position = 'absolute';
+      el.style.left = '-9999px';
+      document.body.appendChild(el);
+      el.select();
+      document.execCommand('copy');
+      document.body.removeChild(el);
+    }
+  }]);
+
+  return copyHTML;
+}();
+
+var _default = copyHTML;
+exports.default = _default;
 },{}],"views/customSelect.js":[function(require,module,exports) {
 "use strict";
 
@@ -2996,6 +3211,8 @@ var _Canvas = _interopRequireDefault(require("./Canvas"));
 
 var _copyCSSController = _interopRequireDefault(require("./controllers/copyCSSController"));
 
+var _copyHTMLController = _interopRequireDefault(require("./controllers/copyHTMLController"));
+
 var _customSelect = _interopRequireDefault(require("./views/customSelect"));
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
@@ -3025,7 +3242,8 @@ var App = /*#__PURE__*/function () {
     this.canvas = new _Canvas.default(options.canvas);
     this.menu = options.menu;
     this.updates = [];
-    this.copyCSS = new _copyCSSController.default(); // Bindings
+    this.copyCSS = new _copyCSSController.default();
+    this.copyHTML = new _copyHTMLController.default(); // Bindings
 
     this.handleUpdates = this.handleUpdates.bind(this);
     this.mousedown = this.mousedown.bind(this);
@@ -3140,13 +3358,8 @@ actionBtns.forEach(function (btn) {
     }
   });
 }); // Set the current layer color
-
-var colorPicker = document.getElementById('shape-color');
-colorPicker.addEventListener('input', function () {
-  app.canvas.shapeColor = colorPicker.value;
-  if (app.canvas.activeLayer) app.canvas.activeLayer.setColor(app.canvas.shapeColor);
-});
-},{"./Canvas":"Canvas.js","./controllers/copyCSSController":"controllers/copyCSSController.js","./views/customSelect":"views/customSelect.js"}],"../../node_modules/parcel/src/builtins/hmr-runtime.js":[function(require,module,exports) {
+// const colorPicker = document.getElementById('shape-color');
+},{"./Canvas":"Canvas.js","./controllers/copyCSSController":"controllers/copyCSSController.js","./controllers/copyHTMLController":"controllers/copyHTMLController.js","./views/customSelect":"views/customSelect.js"}],"../../node_modules/parcel/src/builtins/hmr-runtime.js":[function(require,module,exports) {
 var global = arguments[3];
 var OVERLAY_ID = '__parcel__error__overlay__';
 var OldModule = module.bundle.Module;
@@ -3174,7 +3387,7 @@ var parent = module.bundle.parent;
 if ((!parent || !parent.isParcelRequire) && typeof WebSocket !== 'undefined') {
   var hostname = "" || location.hostname;
   var protocol = location.protocol === 'https:' ? 'wss' : 'ws';
-  var ws = new WebSocket(protocol + '://' + hostname + ':' + "52903" + '/');
+  var ws = new WebSocket(protocol + '://' + hostname + ':' + "62843" + '/');
 
   ws.onmessage = function (event) {
     checkedAssets = {};

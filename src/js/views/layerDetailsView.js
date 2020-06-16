@@ -8,6 +8,7 @@ class LayerDetailsView {
     this.elementWidth = document.getElementById('layer-detail_elementWidth');
     this.elementHeight = document.getElementById('layer-detail_elementHeight');
     this.elementFillType = document.getElementById('layer-detail_elementFillType');
+    this.elementSolidColor = document.getElementById('layer-detail_elementSolidColor');
 
     // Bindings
     this.getValue = this.getValue.bind(this);

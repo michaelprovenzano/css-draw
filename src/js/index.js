@@ -1,5 +1,6 @@
 import Canvas from './Canvas';
 import CopyCSS from './controllers/copyCSSController';
+import CopyHTML from './controllers/copyHTMLController';
 import customSelect from './views/customSelect';
 
 class App {
@@ -8,6 +9,7 @@ class App {
     this.menu = options.menu;
     this.updates = [];
     this.copyCSS = new CopyCSS();
+    this.copyHTML = new CopyHTML();
 
     // Bindings
     this.handleUpdates = this.handleUpdates.bind(this);
@@ -109,8 +111,4 @@ actionBtns.forEach(btn =>
 );
 
 // Set the current layer color
-const colorPicker = document.getElementById('shape-color');
-colorPicker.addEventListener('input', function () {
-  app.canvas.shapeColor = colorPicker.value;
-  if (app.canvas.activeLayer) app.canvas.activeLayer.setColor(app.canvas.shapeColor);
-});
+// const colorPicker = document.getElementById('shape-color');

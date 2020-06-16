@@ -10,6 +10,7 @@ class Layer {
     // Bindings
     this.add = this.add.bind(this);
     this.clearClickPosition = this.clearClickPosition.bind(this);
+    this.getCenter = this.getCenter.bind(this);
     this.getProperties = this.getProperties.bind(this);
     this.getTransformOrigin = this.getTransformOrigin.bind(this);
     this.makeInactive = this.makeInactive.bind(this);
@@ -38,6 +39,10 @@ class Layer {
 
   makeInactive(layer) {
     this.model.makeInactive();
+  }
+
+  getCenter() {
+    return this.model.getCenter();
   }
 
   getProperties() {

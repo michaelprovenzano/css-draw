@@ -24,6 +24,7 @@ class LayerModel {
     this.zIndex = 1;
 
     // Bindings ///////
+    this.getCenter = this.getCenter.bind(this);
     this.makeActive = this.makeActive.bind(this);
     this.makeInactive = this.makeInactive.bind(this);
     this.setBoundsFromElement = this.setBoundsFromElement.bind(this);
@@ -39,6 +40,10 @@ class LayerModel {
 
   clearClickPosition() {
     this.clickEvent = undefined;
+  }
+
+  getCenter() {
+    return new Point(this.width / 2 + this.left, this.height / 2 + this.top);
   }
 
   makeActive() {
