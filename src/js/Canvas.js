@@ -228,7 +228,7 @@ class Canvas {
 
       // If the click is on the canvas clear the active layer
       if (event.target.id === this.element.id) {
-        this.unGroupAllLayers(this.activeLayer);
+        if (this.activeLayer.temp) this.unGroupAllLayers(this.activeLayer);
         this.clearActiveLayer();
       }
 
@@ -308,7 +308,10 @@ class Canvas {
     if (this.activeLayer) this.activeLayer.clearClickPosition();
 
     if (this.activeLayer && this.mode === 'draw') {
-      if (this.activeLayer.width === 0 || this.activeLayer.height === 0) {
+      let layer = this.activeLayer.getProperties();
+
+      // If the shapes dimensions is 0 0 then remove it
+      if (layer.width === 0 || layer.height === 0) {
         this.layers.remove(this.activeLayer);
       }
     }
@@ -450,6 +453,7 @@ class Canvas {
   }
 
   unGroupAllLayers(group) {
+    if (group.type !== 'group') return;
     this.layers.unGroupAllLayers(group);
     this.transformHelper.remove();
   }

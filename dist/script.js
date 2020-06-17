@@ -323,8 +323,8 @@ var LayerModel = /*#__PURE__*/function () {
     key: "setPosition",
     value: function setPosition(left, top) {
       if (this.clickEvent) {
-        this.top = top - this.clickEvent.y;
-        this.left = left - this.clickEvent.x;
+        this.top = top - this.clickEvent.y + (this.bounds.height - this.height) / 2;
+        this.left = left - this.clickEvent.x + (this.bounds.width - this.width) / 2;
       } else {
         this.top = top;
         this.left = left;
@@ -387,7 +387,7 @@ var LayerModel = /*#__PURE__*/function () {
       this.clickEvent = {
         x: event.clientX - this.bounds.x,
         y: event.clientY - this.bounds.y
-      };
+      }; // console.log(this.bounds);
     }
   }]);
 
@@ -2799,7 +2799,7 @@ var Canvas = /*#__PURE__*/function () {
         if (target && event.target.id !== 'transform-helper-box') this.makeActiveLayer(target); // If the click is on the canvas clear the active layer
 
         if (event.target.id === this.element.id) {
-          this.unGroupAllLayers(this.activeLayer);
+          if (this.activeLayer.temp) this.unGroupAllLayers(this.activeLayer);
           this.clearActiveLayer();
         } // Attach the helper to the active layer or remove if it doesn't exist
 
@@ -2869,7 +2869,9 @@ var Canvas = /*#__PURE__*/function () {
       if (this.activeLayer) this.activeLayer.clearClickPosition();
 
       if (this.activeLayer && this.mode === 'draw') {
-        if (this.activeLayer.width === 0 || this.activeLayer.height === 0) {
+        var layer = this.activeLayer.getProperties(); // If the shapes dimensions is 0 0 then remove it
+
+        if (layer.width === 0 || layer.height === 0) {
           this.layers.remove(this.activeLayer);
         }
       }
@@ -3013,6 +3015,7 @@ var Canvas = /*#__PURE__*/function () {
   }, {
     key: "unGroupAllLayers",
     value: function unGroupAllLayers(group) {
+      if (group.type !== 'group') return;
       this.layers.unGroupAllLayers(group);
       this.transformHelper.remove();
     }
@@ -3393,7 +3396,7 @@ var parent = module.bundle.parent;
 if ((!parent || !parent.isParcelRequire) && typeof WebSocket !== 'undefined') {
   var hostname = "" || location.hostname;
   var protocol = location.protocol === 'https:' ? 'wss' : 'ws';
-  var ws = new WebSocket(protocol + '://' + hostname + ':' + "62843" + '/');
+  var ws = new WebSocket(protocol + '://' + hostname + ':' + "49960" + '/');
 
   ws.onmessage = function (event) {
     checkedAssets = {};

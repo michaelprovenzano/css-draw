@@ -61,8 +61,8 @@ class LayerModel {
 
   setPosition(left, top) {
     if (this.clickEvent) {
-      this.top = top - this.clickEvent.y;
-      this.left = left - this.clickEvent.x;
+      this.top = top - this.clickEvent.y + (this.bounds.height - this.height) / 2;
+      this.left = left - this.clickEvent.x + (this.bounds.width - this.width) / 2;
     } else {
       this.top = top;
       this.left = left;
@@ -117,6 +117,7 @@ class LayerModel {
       x: event.clientX - this.bounds.x,
       y: event.clientY - this.bounds.y,
     };
+    // console.log(this.bounds);
   }
 }
 
